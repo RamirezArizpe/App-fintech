@@ -101,6 +101,19 @@ def mostrar_analisis(df):
 
         st.write(f"- **Total de Ingresos**: ${total_ingresos:.2f}")
         st.write(f"- **Total de Gastos**: ${total_gastos:.2f}")
+
+        # Calcular la proporción de gastos sobre ingresos
+        if total_ingresos > 0:
+            proporcion_gastos = total_gastos / total_ingresos
+        else:
+            proporcion_gastos = 0  # Si no hay ingresos, la proporción será 0
+
+        st.write(f"- **Proporción de Gastos sobre Ingresos**: {proporcion_gastos:.2%}")
+
+        # Alertas si la proporción de gastos es alta
+        if proporcion_gastos > 0.7:
+            st.warning("🚨 Alerta: La proporción de tus gastos sobre ingresos es alta (>70%). Revisa tus gastos.")
+        
         st.write(f"- **Balance Neto**: ${balance:.2f}")
         st.write(f"- **Promedio de Ingresos**: ${promedio_ingresos:.2f}")
         st.write(f"- **Promedio de Gastos**: ${promedio_gastos:.2f}")
