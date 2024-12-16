@@ -1,7 +1,21 @@
 import streamlit as st
 import pandas as pd
 
-theme {black}
+# Configurar tema oscuro
+st.set_page_config(page_title="Mi Aplicación", page_icon=":guardsman:", layout="centered", initial_sidebar_state="expanded")
+
+# Cambiar a tema oscuro
+st.markdown(
+    """
+    <style>
+    .main {
+        background-color: #333333;
+        color: white;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Configuración inicial de la aplicación
 st.title("Formulario de Datos y Análisis")
