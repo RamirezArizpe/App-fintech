@@ -3,6 +3,31 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 
+# Función para cargar datos manualmente
+def cargar_manual():
+    st.subheader("Ingreso manual de datos")
+
+    with st.form(key="manual_form"):
+        tipo = st.selectbox("Tipo de movimiento", ["Ingreso", "Gasto"])
+        descripcion = st.text_input("Descripción del movimiento")
+        monto = st.number_input("Monto", min_value=0.01, step=0.01)
+        forma_pago = st.text_input("Forma de pago")
+        valoracion_gasto = st.slider("Valoración del gasto (1 = Totalmente innecesario, 6 = Totalmente necesario)", min_value=1, max_value=6, value=4)
+        fecha = st.date_input("Fecha de transacción", value=datetime.today())
+        agregar = st.form_submit_button("Agregar movimiento")
+
+    if agregar:
+        nuevo_dato = {
+            "Tipo": tipo,
+            "Descripción": descripcion,
+            "Monto": monto,
+            "Forma de pago": forma_pago,
+            "Valoración gasto": valoracion_gasto,
+            "Fecha de transacción": fecha
+        }
+        return pd.DataFrame([nuevo_dato])
+    return pd.DataFrame()
+
 # Función para cargar datos desde un archivo CSV
 def cargar_csv():
     archivo = st.file_uploader("Cargar archivo CSV", type=["csv"])
@@ -125,9 +150,27 @@ def predecir_ahorros(df):
 def app():
     st.title("Gestión de Finanzas Personales")
 
-    df = cargar_csv()
+    # Seleccionar entre carga manual o carga desde CSV
+    opcion = st.radio("Seleccione el método de carga de datos:", ("Carga Manual", "Cargar desde CSV"))
 
-    if df is not None:
+    if opcion == "Carga Manual":
+        df_manual = cargar_manual()
+        if not df_manual.empty:
+            if "dataframe" not in st.session_state:
+                st.session_state["dataframe"] = df_manual
+            else:
+                st.session_state["dataframe"] = pd.concat([st.session_state["dataframe"], df_manual], ignore_index=True)
+
+    elif opcion == "Cargar desde CSV":
+        df_csv = cargar_csv()
+        if df_csv is not None:
+            st.session_state["dataframe"] = df_csv
+
+    if "dataframe" in st.session_state:
+        df = st.session_state["dataframe"]
+        st.write("### Datos actuales:")
+        st.write(df)
+
         analizar_ingresos_gastos(df)
         clasificar_gastos(df)
         calcular_ahorro(df)
