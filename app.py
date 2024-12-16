@@ -27,10 +27,31 @@ def cargar_csv():
         return df_ingresos, df_gastos
     return None, None
 
-# Llamar la función para cargar y procesar el CSV
-df_ingresos, df_gastos = cargar_csv()
+# Opción para elegir entre ingresar manualmente o cargar CSV
+opcion = st.radio("¿Cómo deseas ingresar los datos?", ("Manual", "Desde archivo CSV"))
 
-# Función para registrar un gasto
+# Si el usuario selecciona "Desde archivo CSV", cargamos el CSV
+if opcion == "Desde archivo CSV":
+    df_ingresos, df_gastos = cargar_csv()
+
+# Función para registrar un ingreso manualmente
+def registrar_ingreso_manual():
+    descripcion = st.text_input("Descripción del ingreso:")
+    monto = st.number_input("Monto del ingreso:", min_value=0.0)
+    forma_pago = st.selectbox("Forma de pago:", ["Efectivo", "Tarjeta", "Transferencia"])
+    fecha_mov = st.date_input("Fecha de registro")
+
+    if st.button("Registrar Ingreso"):
+        nuevo_ingreso = {
+            'Descripción': descripcion,
+            'Monto': monto,
+            'Fecha de registro': str(fecha_mov),
+            'Forma de pago': forma_pago
+        }
+        df_ingresos.loc[len(df_ingresos)] = nuevo_ingreso
+        st.success(f"Ingreso registrado: {descripcion}, {monto}, {forma_pago}, {fecha_mov}")
+
+# Función para registrar un gasto manualmente
 def registrar_gasto_con_slider():
     descripcion = st.text_input("Descripción del gasto:")
     monto = st.number_input("Monto del gasto:", min_value=0.0)
@@ -74,5 +95,9 @@ if not df_ingresos.empty and not df_gastos.empty:
     plt.xticks(rotation=45)
     st.pyplot(plt)
 
-# Llamada a la función de registro de gasto con slider
-registrar_gasto_con_slider()
+# Si el usuario eligió "Manual", mostrar opciones para ingresar ingresos y gastos manualmente
+if opcion == "Manual":
+    # Registrar ingreso manual
+    registrar_ingreso_manual()
+    # Registrar gasto manual con slider
+    registrar_gasto_con_slider()
