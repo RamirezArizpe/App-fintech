@@ -97,6 +97,21 @@ def mostrar_analisis(df):
         st.write("### Frecuencia de Formas de Pago:")
         st.write(formas_pago_counts)
 
+        # Cálculo de Insights basado en la matriz de coeficientes A
+        st.write("### Insights sobre tu salario e inversiones")
+        A = np.array([[0.7, 0.3],  # Salario, Inversiones
+                      [0.5, 0.4],  # Inversiones
+                      [0.3, 0.5]])  # Otras fuentes
+        b = np.array([total_gastos * 0.5, total_gastos * 0.3, total_gastos * 0.2])  # Estimaciones basadas en porcentaje de gastos
+
+        try:
+            # Resolviendo el sistema de ecuaciones A * x = b
+            x = np.linalg.solve(A, b)
+            st.write(f"Salario estimado: ${x[0]:.2f}")
+            st.write(f"Inversiones estimadas: ${x[1]:.2f}")
+        except np.linalg.LinAlgError:
+            st.error("No se pudo calcular el salario e inversiones debido a un error en los datos.")
+
 # Función para registrar un ingreso o gasto
 def registrar_transaccion(tipo):
     st.title(f"Registrar {tipo}")
