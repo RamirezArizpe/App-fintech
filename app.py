@@ -94,4 +94,3 @@ def app():
 # Ejecutar la aplicación
 if __name__ == "__main__":
     app()
-streamlit run app.py
