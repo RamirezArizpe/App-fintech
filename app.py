@@ -51,17 +51,16 @@ def registrar_ingreso_manual():
         df_ingresos.loc[len(df_ingresos)] = nuevo_ingreso
         st.success(f"Ingreso registrado: {descripcion}, {monto}, {forma_pago}, {fecha_mov}")
 
-# Función para registrar un gasto manualmente
 def registrar_gasto_con_slider():
-    descripcion = st.text_input("Descripción del gasto:")
-    monto = st.number_input("Monto del gasto:", min_value=0.0)
-    forma_pago = st.selectbox("Forma de pago:", ["Efectivo", "Tarjeta", "Transferencia"])
-    fecha_mov = st.date_input("Fecha de registro")
+    descripcion = st.text_input("Descripción del gasto:", key="descripcion_gasto")
+    monto = st.number_input("Monto del gasto:", min_value=0.0, key="monto_gasto")
+    forma_pago = st.selectbox("Forma de pago:", ["Efectivo", "Tarjeta", "Transferencia"], key="forma_pago")
+    fecha_mov = st.date_input("Fecha de registro", key="fecha_gasto")
 
     # Mostrar la barra deslizadora solo si es un gasto
     if monto > 0:
-        valoracion = st.slider("¿Qué tan necesario fue este gasto?", 1, 6, 3)
-        if st.button("Registrar Gasto"):
+        valoracion = st.slider("¿Qué tan necesario fue este gasto?", 1, 6, 3, key="valoracion_gasto")
+        if st.button("Registrar Gasto", key="registrar_gasto"):
             # Aquí puedes guardar el gasto en el DataFrame correspondiente
             nuevo_gasto = {
                 'Descripción': descripcion,
