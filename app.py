@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Agregar el logo al encabezado
-st.image("https://drive.google.com/uc?id=1kD9ibgHAIaxX3xHxuPnw241Fucj8URLD", width=200)
+st.image("https://raw.githubusercontent.com/RamirezArizpe/App-fintech/3d4417a0ae44873d4fbf69622e9350268971cf82/Logo%20app.jpg", width=200)
 
 # Configuración inicial de la aplicación
 st.title("Formulario de Datos y Análisis")
