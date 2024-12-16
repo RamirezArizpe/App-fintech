@@ -89,8 +89,6 @@ if opcion == "CSV":
     else:
         st.error("No se pudo cargar el CSV correctamente.")
 elif opcion == "Manual":
-    # Registrar ingreso manual
-    registrar_ingreso_manual()
 
 # Función para registrar un ingreso manualmente
 def registrar_ingreso_manual():
