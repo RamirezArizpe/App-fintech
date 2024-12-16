@@ -38,64 +38,108 @@ def cargar_csv():
 def mostrar_analisis(df):
     st.title("Análisis Gráfico e Insights de tus Finanzas")
 
-    # Convertir la columna 'Fecha de transacción' a formato de fecha
-    df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
-    
-    # Gráfico de Ingresos vs Gastos
-    fig = plt.figure(figsize=(10, 6))
-    sns.countplot(data=df, x='Tipo', palette="Set2")
-    plt.title("Distribución de Ingresos vs Gastos")
-    st.pyplot(fig)
+    # Crear un contenedor con dos columnas: una para las gráficas y otra para el texto
+    col1, col2 = st.columns([2, 1])
 
-    # Gráfico de ingresos y gastos por mes
-    df['Mes-Año'] = df['Fecha'].dt.to_period('M')
-    ingresos_mes = df[df['Tipo'] == 'Ingreso'].groupby('Mes-Año')['Monto'].sum()
-    gastos_mes = df[df['Tipo'] == 'Gasto'].groupby('Mes-Año')['Monto'].sum()
+    with col1:
+        # Convertir la columna 'Fecha de transacción' a formato de fecha
+        df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
 
-    fig = plt.figure(figsize=(10, 6))
-    plt.plot(ingresos_mes.index.astype(str), ingresos_mes, label="Ingresos", marker='o')
-    plt.plot(gastos_mes.index.astype(str), gastos_mes, label="Gastos", marker='o')
-    plt.title("Ingresos y Gastos Mensuales")
-    plt.xlabel("Mes")
-    plt.ylabel("Monto en Pesos")
-    plt.legend()
-    st.pyplot(fig)
-    
-    # Gráfico interactivo de formas de pago (usando Plotly)
-    fig = px.pie(df, names='Forma de pago', title='Distribución de Formas de Pago')
-    st.plotly_chart(fig)
+        # Filtro para seleccionar mes o total
+        opcion_mes = st.selectbox("Selecciona un mes o Total", ["Total"] + list(df['Fecha'].dt.to_period('M').unique().astype(str)))
 
-    # Insights de los datos
-    st.write("### Insights:")
-    
-    total_ingresos = df[df['Tipo'] == 'Ingreso']['Monto'].sum()
-    total_gastos = df[df['Tipo'] == 'Gasto']['Monto'].sum()
-    balance = total_ingresos - total_gastos
-    promedio_ingresos = df[df['Tipo'] == 'Ingreso']['Monto'].mean()
-    promedio_gastos = df[df['Tipo'] == 'Gasto']['Monto'].mean()
+        if opcion_mes == "Total":
+            # Gráfico de Ingresos vs Gastos total
+            ingresos_total = df[df['Tipo'] == 'Ingreso']['Monto'].sum()
+            gastos_total = df[df['Tipo'] == 'Gasto']['Monto'].sum()
+            labels = ['Ingresos', 'Gastos']
+            values = [ingresos_total, gastos_total]
+            fig = plt.figure(figsize=(6, 4))
+            plt.bar(labels, values, color=['green', 'red'])
+            plt.title("Ingresos vs Gastos Total")
+            plt.ylabel("Monto en Pesos")
+            st.pyplot(fig)
+        else:
+            # Filtro dinámico por mes
+            df_mes = df[df['Fecha'].dt.to_period('M').astype(str) == opcion_mes]
+            ingresos_mes = df_mes[df_mes['Tipo'] == 'Ingreso']['Monto'].sum()
+            gastos_mes = df_mes[df_mes['Tipo'] == 'Gasto']['Monto'].sum()
+            labels = ['Ingresos', 'Gastos']
+            values = [ingresos_mes, gastos_mes]
+            fig = plt.figure(figsize=(6, 4))
+            plt.bar(labels, values, color=['green', 'red'])
+            plt.title(f"Ingresos vs Gastos - {opcion_mes}")
+            plt.ylabel("Monto en Pesos")
+            st.pyplot(fig)
 
-    st.write(f"- **Total de Ingresos**: ${total_ingresos:.2f}")
-    st.write(f"- **Total de Gastos**: ${total_gastos:.2f}")
-    st.write(f"- **Balance Neto**: ${balance:.2f}")
-    st.write(f"- **Promedio de Ingresos**: ${promedio_ingresos:.2f}")
-    st.write(f"- **Promedio de Gastos**: ${promedio_gastos:.2f}")
+        # Gráfico de tendencias de ingresos y gastos
+        st.write("### Tendencias de Ingresos y Gastos a lo largo del tiempo")
+        # Agrupar los datos por mes y año
+        df['Mes'] = df['Fecha'].dt.to_period('M')
+        ingresos_tendencia = df[df['Tipo'] == 'Ingreso'].groupby('Mes')['Monto'].sum()
+        gastos_tendencia = df[df['Tipo'] == 'Gasto'].groupby('Mes')['Monto'].sum()
 
-    # Estadísticas de las formas de pago
-    formas_pago_counts = df['Forma de pago'].value_counts()
-    st.write("### Frecuencia de Formas de Pago:")
-    st.write(formas_pago_counts)
+        fig_tendencia = plt.figure(figsize=(8, 5))
+        plt.plot(ingresos_tendencia.index.astype(str), ingresos_tendencia, label='Ingresos', color='green', marker='o')
+        plt.plot(gastos_tendencia.index.astype(str), gastos_tendencia, label='Gastos', color='red', marker='o')
+        plt.xlabel("Mes")
+        plt.ylabel("Monto en Pesos")
+        plt.title("Tendencia de Ingresos y Gastos")
+        plt.legend()
+        plt.xticks(rotation=45)
+        st.pyplot(fig_tendencia)
 
-# Función para mostrar un ejemplo de archivo CSV
-def mostrar_ejemplo_csv():
-    # Ejemplo con columna "Tipo" para indicar si es un Ingreso o Gasto
-    ejemplo = pd.DataFrame({
+    with col2:
+        # Mostrar insights de los datos
+        st.write("### Insights:")
+        
+        total_ingresos = df[df['Tipo'] == 'Ingreso']['Monto'].sum()
+        total_gastos = df[df['Tipo'] == 'Gasto']['Monto'].sum()
+        balance = total_ingresos - total_gastos
+        promedio_ingresos = df[df['Tipo'] == 'Ingreso']['Monto'].mean()
+        promedio_gastos = df[df['Tipo'] == 'Gasto']['Monto'].mean()
+
+        st.write(f"- **Total de Ingresos**: ${total_ingresos:.2f}")
+        st.write(f"- **Total de Gastos**: ${total_gastos:.2f}")
+
+        # Calcular la proporción de gastos sobre ingresos
+        if total_ingresos > 0:
+            proporcion_gastos = total_gastos / total_ingresos
+        else:
+            proporcion_gastos = 0  # Si no hay ingresos, la proporción será 0
+
+        st.write(f"- **Proporción de Gastos sobre Ingresos**: {proporcion_gastos:.2%}")
+
+        # Alertas si la proporción de gastos es alta
+        if proporcion_gastos > 0.7:
+            st.warning("🚨 Alerta: La proporción de tus gastos sobre ingresos es alta (>70%). Revisa tus gastos.")
+        
+        st.write(f"- **Balance Neto**: ${balance:.2f}")
+        st.write(f"- **Promedio de Ingresos**: ${promedio_ingresos:.2f}")
+        st.write(f"- **Promedio de Gastos**: ${promedio_gastos:.2f}")
+
+        # Estadísticas de las formas de pago
+        formas_pago_counts = df['Forma de pago'].value_counts()
+        st.write("### Frecuencia de Formas de Pago:")
+        st.write(formas_pago_counts)
+
+
+# Cargar el CSV y ejecutar el análisis
+def app():
+    # Ejemplo de dataframe para pruebas
+    df = pd.DataFrame({
         "Descripción": ["Ingreso 1", "Gasto 1", "Ingreso 2", "Gasto 2"],
         "Monto": [1000, 200, 1500, 100],
         "Forma de pago": ["transferencia", "efectivo", "depósito", "efectivo"],
         "Fecha de transacción": ["2024-12-16", "2024-12-16", "2024-12-17", "2024-12-17"],
-        "Valoración gasto": [None, 3, None, 4],  # Valoración sólo para gastos
         "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto"]  # Columna Tipo para diferenciar
     })
+    
+    # Convertir la columna 'Fecha de transacción' a formato de fecha
+    df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
+
+    # Llamar a la función para mostrar análisis
+    mostrar_analisis(df)
     
     st.write("Ejemplo de formato CSV para carga correcta: (no escribas acentos ni caractéres especiales)")
     st.write(ejemplo)
@@ -222,6 +266,17 @@ def app():
     elif opcion == "Carga desde CSV":
         mostrar_ejemplo_csv()
         cargar_csv()
+def mostrar_ejemplo_csv():
+    # Ejemplo de cómo debería verse el CSV
+    ejemplo = pd.DataFrame({
+        "Descripción": ["Ingreso 1", "Gasto 1", "Ingreso 2", "Gasto 2"],
+        "Monto": [1000, 200, 1500, 100],
+        "Forma de pago": ["transferencia", "efectivo", "depósito", "efectivo"],
+        "Fecha de transacción": ["2024-12-16", "2024-12-16", "2024-12-17", "2024-12-17"],
+        "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto"]
+    })
+    st.write("Ejemplo de formato CSV para carga correcta: (no escribas acentos ni caracteres especiales)")
+    st.write(ejemplo)
 
 # Ejecutar la aplicación
 if __name__ == "__main__":
