@@ -72,6 +72,23 @@ def mostrar_analisis(df):
             plt.ylabel("Monto en Pesos")
             st.pyplot(fig)
 
+        # Gráfico de tendencias de ingresos y gastos
+        st.write("### Tendencias de Ingresos y Gastos a lo largo del tiempo")
+        # Agrupar los datos por mes y año
+        df['Mes'] = df['Fecha'].dt.to_period('M')
+        ingresos_tendencia = df[df['Tipo'] == 'Ingreso'].groupby('Mes')['Monto'].sum()
+        gastos_tendencia = df[df['Tipo'] == 'Gasto'].groupby('Mes')['Monto'].sum()
+
+        fig_tendencia = plt.figure(figsize=(8, 5))
+        plt.plot(ingresos_tendencia.index.astype(str), ingresos_tendencia, label='Ingresos', color='green', marker='o')
+        plt.plot(gastos_tendencia.index.astype(str), gastos_tendencia, label='Gastos', color='red', marker='o')
+        plt.xlabel("Mes")
+        plt.ylabel("Monto en Pesos")
+        plt.title("Tendencia de Ingresos y Gastos")
+        plt.legend()
+        plt.xticks(rotation=45)
+        st.pyplot(fig_tendencia)
+
     with col2:
         # Mostrar insights de los datos
         st.write("### Insights:")
