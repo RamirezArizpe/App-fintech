@@ -100,6 +100,10 @@ st.markdown("""
             color: white; /* Color de texto blanco en los botones */
         }
 
+        /* Sin fondo para la pregunta */
+        .stTitle, .stSubheader, .stMarkdown {
+            background: none !important;
+        }
     </style>
 """, unsafe_allow_html=True)
 
