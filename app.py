@@ -137,18 +137,6 @@ with col2:
     plt.grid(True)
     st.pyplot(plt)
 
-# Graficar los gastos por categoría (Descripción)
-st.subheader("Gráfico de Gastos por Categoría")
-plt.figure(figsize=(10, 6))
-gastos_categoria = df_gastos.groupby('Descripción')['Monto'].sum().sort_values(ascending=False)
-sns.barplot(x=gastos_categoria.index, y=gastos_categoria.values, palette='Reds')
-plt.title('Gastos por Categoría')
-plt.xlabel('Categoría')
-plt.ylabel('Monto')
-plt.xticks(rotation=45, ha='right')
-plt.tight_layout()  # Mejor ajuste de los elementos
-st.pyplot(plt)
-
 # Graficar los ingresos por categoría (Descripción)
 st.subheader("Gráfico de Ingresos por Categoría")
 plt.figure(figsize=(10, 6))
@@ -161,3 +149,14 @@ plt.xticks(rotation=45, ha='right')
 plt.tight_layout()  # Mejor ajuste de los elementos
 st.pyplot(plt)
 
+# Graficar los gastos por categoría (Descripción)
+st.subheader("Gráfico de Gastos por Categoría")
+plt.figure(figsize=(10, 6))
+gastos_categoria = df_gastos.groupby('Descripción')['Monto'].sum().sort_values(ascending=False)
+sns.barplot(x=gastos_categoria.index, y=gastos_categoria.values, palette='Reds')
+plt.title('Gastos por Categoría')
+plt.xlabel('Categoría')
+plt.ylabel('Monto')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()  # Mejor ajuste de los elementos
+st.pyplot(plt)
