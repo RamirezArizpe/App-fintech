@@ -29,13 +29,16 @@ def cargar_csv():
 
 # Función para mostrar un ejemplo de archivo CSV
 def mostrar_ejemplo_csv():
+    # Ejemplo con columna "Tipo" para indicar si es un Ingreso o Gasto
     ejemplo = pd.DataFrame({
-        "Descripción": ["Ingreso 1", "Gasto 1"],
-        "Monto": [1000, 200],
-        "Forma de pago": ["transferencia", "efectivo"],
-        "Fecha de transacción": ["2024-12-16", "2024-12-16"],
-        "Valoración gasto": [None, 3]
+        "Descripción": ["Ingreso 1", "Gasto 1", "Ingreso 2", "Gasto 2"],
+        "Monto": [1000, 200, 1500, 100],
+        "Forma de pago": ["transferencia", "efectivo", "depósito", "efectivo"],
+        "Fecha de transacción": ["2024-12-16", "2024-12-16", "2024-12-17", "2024-12-17"],
+        "Valoración gasto": [None, 3, None, 4],  # Valoración sólo para gastos
+        "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto"]  # Columna Tipo para diferenciar
     })
+    
     st.write("Ejemplo de formato CSV para carga correcta:")
     st.write(ejemplo)
     # Opción para descargar el ejemplo como CSV
