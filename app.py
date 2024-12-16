@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from datetime import datetime
+import plotly.express as px
 
 # Agregar el logo al encabezado
 st.image("https://raw.githubusercontent.com/RamirezArizpe/App-fintech/main/encabezado%20app.jpg", width=4000)
@@ -25,67 +28,62 @@ def cargar_csv():
             st.write("Datos cargados exitosamente:")
             st.write(df)
             
-            # Mostrar el promedio de ingresos y gastos
-            calcular_promedio(df)
-            analizar_por_descripcion(df)
+            # Mostrar análisis gráfico e insights
+            mostrar_analisis(df)
             
         except Exception as e:
             st.error(f"Error al cargar el archivo: {e}")
 
-# Función para calcular el promedio de ingresos y gastos
-def calcular_promedio(df):
-    # Seleccionar si se quiere ver el promedio total o mensual
-    corte = st.radio("Selecciona el corte de tiempo:", ["Promedio Total", "Promedio Mensual"])
+# Función para mostrar gráficos y análisis visual
+def mostrar_analisis(df):
+    st.title("Análisis Gráfico e Insights de tus Finanzas")
+
+    # Convertir la columna 'Fecha de transacción' a formato de fecha
+    df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
     
-    if corte == "Promedio Mensual":
-        # Extraer el mes y año de la fecha
-        df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
-        df['Mes-Año'] = df['Fecha'].dt.to_period('M')
+    # Gráfico de Ingresos vs Gastos
+    fig = plt.figure(figsize=(10, 6))
+    sns.countplot(data=df, x='Tipo', palette="Set2")
+    plt.title("Distribución de Ingresos vs Gastos")
+    st.pyplot(fig)
 
-        mes_seleccionado = st.selectbox("Selecciona el mes:", df['Mes-Año'].unique())
-        df_mes = df[df['Mes-Año'] == mes_seleccionado]
-        
-        # Filtramos los ingresos y gastos
-        ingresos = df_mes[df_mes['Tipo'] == 'Ingreso']
-        gastos = df_mes[df_mes['Tipo'] == 'Gasto']
-    else:
-        # Sin filtro, usamos todos los datos
-        ingresos = df[df['Tipo'] == 'Ingreso']
-        gastos = df[df['Tipo'] == 'Gasto']
+    # Gráfico de ingresos y gastos por mes
+    df['Mes-Año'] = df['Fecha'].dt.to_period('M')
+    ingresos_mes = df[df['Tipo'] == 'Ingreso'].groupby('Mes-Año')['Monto'].sum()
+    gastos_mes = df[df['Tipo'] == 'Gasto'].groupby('Mes-Año')['Monto'].sum()
 
-    # Calculamos el promedio de ingresos y gastos
-    promedio_ingresos = ingresos['Monto'].mean() if not ingresos.empty else 0
-    promedio_gastos = gastos['Monto'].mean() if not gastos.empty else 0
+    fig = plt.figure(figsize=(10, 6))
+    plt.plot(ingresos_mes.index.astype(str), ingresos_mes, label="Ingresos", marker='o')
+    plt.plot(gastos_mes.index.astype(str), gastos_mes, label="Gastos", marker='o')
+    plt.title("Ingresos y Gastos Mensuales")
+    plt.xlabel("Mes")
+    plt.ylabel("Monto en Pesos")
+    plt.legend()
+    st.pyplot(fig)
     
-    # Mostrar los resultados
-    st.write(f"Promedio de Ingresos: ${promedio_ingresos:.2f}")
-    st.write(f"Promedio de Gastos: ${promedio_gastos:.2f}")
+    # Gráfico interactivo de formas de pago (usando Plotly)
+    fig = px.pie(df, names='Forma de pago', title='Distribución de Formas de Pago')
+    st.plotly_chart(fig)
 
-# Función para realizar análisis por descripción
-def analizar_por_descripcion(df):
-    descripcion_buscar = st.text_input("Buscar por descripción (opcional)")
+    # Insights de los datos
+    st.write("### Insights:")
+    
+    total_ingresos = df[df['Tipo'] == 'Ingreso']['Monto'].sum()
+    total_gastos = df[df['Tipo'] == 'Gasto']['Monto'].sum()
+    balance = total_ingresos - total_gastos
+    promedio_ingresos = df[df['Tipo'] == 'Ingreso']['Monto'].mean()
+    promedio_gastos = df[df['Tipo'] == 'Gasto']['Monto'].mean()
 
-    if descripcion_buscar:
-        # Filtrar las transacciones que contienen la descripción ingresada
-        df_filtrado = df[df['Descripción'].str.contains(descripcion_buscar, case=False, na=False)]
-        
-        if not df_filtrado.empty:
-            st.write(f"Análisis para las transacciones que contienen '{descripcion_buscar}':")
-            
-            # Calcular los promedios de ingresos y gastos para esas descripciones
-            ingresos_filtrados = df_filtrado[df_filtrado['Tipo'] == 'Ingreso']
-            gastos_filtrados = df_filtrado[df_filtrado['Tipo'] == 'Gasto']
-            
-            promedio_ingresos = ingresos_filtrados['Monto'].mean() if not ingresos_filtrados.empty else 0
-            promedio_gastos = gastos_filtrados['Monto'].mean() if not gastos_filtrados.empty else 0
-            
-            st.write(f"Promedio de Ingresos para '{descripcion_buscar}': ${promedio_ingresos:.2f}")
-            st.write(f"Promedio de Gastos para '{descripcion_buscar}': ${promedio_gastos:.2f}")
-            
-            # Mostrar las transacciones filtradas
-            st.write(df_filtrado)
-        else:
-            st.write(f"No se encontraron transacciones que contengan '{descripcion_buscar}'.")
+    st.write(f"- **Total de Ingresos**: ${total_ingresos:.2f}")
+    st.write(f"- **Total de Gastos**: ${total_gastos:.2f}")
+    st.write(f"- **Balance Neto**: ${balance:.2f}")
+    st.write(f"- **Promedio de Ingresos**: ${promedio_ingresos:.2f}")
+    st.write(f"- **Promedio de Gastos**: ${promedio_gastos:.2f}")
+
+    # Estadísticas de las formas de pago
+    formas_pago_counts = df['Forma de pago'].value_counts()
+    st.write("### Frecuencia de Formas de Pago:")
+    st.write(formas_pago_counts)
 
 # Función para mostrar un ejemplo de archivo CSV
 def mostrar_ejemplo_csv():
