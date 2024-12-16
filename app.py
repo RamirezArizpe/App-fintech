@@ -1,7 +1,9 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 from datetime import datetime
+import plotly.express as px
 
 # Agregar el logo al encabezado
 st.image("https://raw.githubusercontent.com/RamirezArizpe/App-fintech/main/encabezado%20app.jpg", width=4000)
@@ -43,16 +45,32 @@ def mostrar_analisis(df):
         # Convertir la columna 'Fecha de transacción' a formato de fecha
         df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
 
-        # Gráfico de Ingresos vs Gastos total
-        ingresos_total = df[df['Tipo'] == 'Ingreso']['Monto'].sum()
-        gastos_total = df[df['Tipo'] == 'Gasto']['Monto'].sum()
-        labels = ['Ingresos', 'Gastos']
-        values = [ingresos_total, gastos_total]
-        fig = plt.figure(figsize=(6, 4))
-        plt.bar(labels, values, color=['green', 'red'])
-        plt.title("Ingresos vs Gastos Total")
-        plt.ylabel("Monto en Pesos")
-        st.pyplot(fig)
+        # Filtro para seleccionar mes o total
+        opcion_mes = st.selectbox("Selecciona un mes o Total", ["Total"] + list(df['Fecha'].dt.to_period('M').unique().astype(str)))
+
+        if opcion_mes == "Total":
+            # Gráfico de Ingresos vs Gastos total
+            ingresos_total = df[df['Tipo'] == 'Ingreso']['Monto'].sum()
+            gastos_total = df[df['Tipo'] == 'Gasto']['Monto'].sum()
+            labels = ['Ingresos', 'Gastos']
+            values = [ingresos_total, gastos_total]
+            fig = plt.figure(figsize=(6, 4))
+            plt.bar(labels, values, color=['green', 'red'])
+            plt.title("Ingresos vs Gastos Total")
+            plt.ylabel("Monto en Pesos")
+            st.pyplot(fig)
+        else:
+            # Filtro dinámico por mes
+            df_mes = df[df['Fecha'].dt.to_period('M').astype(str) == opcion_mes]
+            ingresos_mes = df_mes[df_mes['Tipo'] == 'Ingreso']['Monto'].sum()
+            gastos_mes = df_mes[df_mes['Tipo'] == 'Gasto']['Monto'].sum()
+            labels = ['Ingresos', 'Gastos']
+            values = [ingresos_mes, gastos_mes]
+            fig = plt.figure(figsize=(6, 4))
+            plt.bar(labels, values, color=['green', 'red'])
+            plt.title(f"Ingresos vs Gastos - {opcion_mes}")
+            plt.ylabel("Monto en Pesos")
+            st.pyplot(fig)
 
         # Gráfico de tendencias de ingresos y gastos
         st.write("### Tendencias de Ingresos y Gastos a lo largo del tiempo")
@@ -83,19 +101,6 @@ def mostrar_analisis(df):
 
         st.write(f"- **Total de Ingresos**: ${total_ingresos:.2f}")
         st.write(f"- **Total de Gastos**: ${total_gastos:.2f}")
-
-        # Calcular la proporción de gastos sobre ingresos
-        if total_ingresos > 0:
-            proporcion_gastos = total_gastos / total_ingresos
-        else:
-            proporcion_gastos = 0  # Si no hay ingresos, la proporción será 0
-
-        st.write(f"- **Proporción de Gastos sobre Ingresos**: {proporcion_gastos:.2%}")
-
-        # Alertas si la proporción de gastos es alta
-        if proporcion_gastos > 0.8:
-            st.warning("🚨 Alerta: La proporción de tus gastos sobre ingresos es alta (>80%). Revisa tus gastos.")
-        
         st.write(f"- **Balance Neto**: ${balance:.2f}")
         st.write(f"- **Promedio de Ingresos**: ${promedio_ingresos:.2f}")
         st.write(f"- **Promedio de Gastos**: ${promedio_gastos:.2f}")
@@ -206,17 +211,60 @@ def registrar_transaccion(tipo):
         valoracion = st.slider(
             "¿Qué tan necesario fue este gasto?", 
             min_value=1, 
-            max_value=5, 
-            value=3, 
-            step=1,
-            help="1 es 'muy necesario', 5 es 'no necesario en absoluto'."
+            max_value=6, 
+            step=1
         )
+        st.markdown("""
+            <style>
+                /* Estilo para el texto explicativo */
+                .stSlider + .stText {
+                    font-size: 14px;
+                    color: #333;
+                    font-style: italic;
+                }
+            </style>
+            <p style="font-size: 14px; color: #333; font-style: italic;">1 = Totalmente innecesario, 6 = Totalmente necesario</p>
+        """, unsafe_allow_html=True)
 
-    if st.button(f"Guardar {tipo}"):
-        # Aquí agregarías código para guardar la transacción
-        st.success(f"{tipo} registrado con éxito.")
-        st.write(f"Descripción: {descripcion}, Monto: ${monto}, Pago: {pago}, Fecha: {fecha}")
+    if st.button(f"Registrar {tipo}"):
+        # Convertir la fecha en formato adecuado
+        fecha_str = fecha.strftime('%Y-%m-%d')
 
+        if tipo == "Ingreso":
+            st.write(f"Ingreso registrado: Descripción: {descripcion}, Monto: {monto}, Forma de pago: {pago}, Fecha: {fecha_str}")
+        elif tipo == "Gasto":
+            st.write(f"Gasto registrado: Descripción: {descripcion}, Monto: {monto}, Forma de pago: {pago}, Fecha: {fecha_str}, Valoración: {valoracion}")
+
+# Función principal que permite elegir entre ingresar manualmente o cargar CSV
+def app():
+    # Añadir la pregunta antes de las opciones
+    st.title("¿Qué deseas registrar?")
+    
+    # Botón para elegir entre "Ingreso Manual" o "Carga desde CSV"
+    opcion = st.radio("Selecciona cómo deseas registrar tus datos", ["Ingreso Manual", "Carga desde CSV"])
+
+    if opcion == "Ingreso Manual":
+        # Subopciones para elegir entre Ingreso o Gasto
+        transaccion = st.radio("¿Qué deseas registrar?", ["Ingreso", "Gasto"])
+
+        # Mostrar el formulario según la selección
+        registrar_transaccion(transaccion)
+    
+    elif opcion == "Carga desde CSV":
+        mostrar_ejemplo_csv()
+        cargar_csv()
+def mostrar_ejemplo_csv():
+    # Ejemplo de cómo debería verse el CSV
+    ejemplo = pd.DataFrame({
+        "Descripción": ["Ingreso 1", "Gasto 1", "Ingreso 2", "Gasto 2"],
+        "Monto": [1000, 200, 1500, 100],
+        "Forma de pago": ["transferencia", "efectivo", "depósito", "efectivo"],
+        "Fecha de transacción": ["2024-12-16", "2024-12-16", "2024-12-17", "2024-12-17"],
+        "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto"]
+    })
+    st.write("Ejemplo de formato CSV para carga correcta: (no escribas acentos ni caracteres especiales)")
+    st.write(ejemplo)
 
 # Ejecutar la aplicación
-app()
+if __name__ == "__main__":
+    app()
