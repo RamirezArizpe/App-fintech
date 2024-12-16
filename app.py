@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import io
 
 # Agregar el logo al encabezado
 st.image("https://raw.githubusercontent.com/RamirezArizpe/App-fintech/main/encabezado%20app.jpg", width=4000)
@@ -17,23 +18,19 @@ def cargar_csv():
         df['Fecha de registro'] = pd.to_datetime(df['Fecha de registro'], format='%d/%m/%Y')
         
         # Separar los ingresos y los gastos según la columna 'Tipo'
-        df_ingresos = df[df['Tipo'] == 'Ingreso']
-        df_gastos = df[df['Tipo'] == 'Gasto']
-        
+        if 'Tipo' in df.columns:
+            df_ingresos = df[df['Tipo'] == 'Ingreso']
+            df_gastos = df[df['Tipo'] == 'Gasto']
+        else:
+            st.error("El archivo CSV no contiene la columna 'Tipo'. Asegúrate de que esté correctamente formateado.")
+            return None, None
+
         # Mostrar los DataFrames separados
         st.write("Ingresos:", df_ingresos)
         st.write("Gastos:", df_gastos)
 
         return df_ingresos, df_gastos
     return None, None
-
-# Opción para elegir entre ingresar manualmente o cargar CSV
-opcion = st.radio("¿Cómo deseas ingresar los datos?", ("Manual", "Desde archivo CSV"))
-
-# Si el usuario selecciona "Desde archivo CSV", cargamos el CSV
-if opcion == "Desde archivo CSV":
-    df_ingresos, df_gastos = cargar_csv()
-
 
 # Crear un CSV de ejemplo para ingresos y gastos
 def crear_csv_ejemplo():
@@ -85,10 +82,17 @@ def descargar_csv_ejemplo():
 opcion = st.radio("Selecciona cómo ingresar los datos", ["Manual", "CSV"], horizontal=True)
 
 if opcion == "CSV":
-    descargar_csv_ejemplo()
+    df_ingresos, df_gastos = cargar_csv()
+    if df_ingresos is not None and df_gastos is not None:
+        st.write("Ingresos cargados:", df_ingresos)
+        st.write("Gastos cargados:", df_gastos)
+    else:
+        st.error("No se pudo cargar el CSV correctamente.")
 elif opcion == "Manual":
-    # Aquí puedes colocar el resto de tu código de registro manual
-    st.write("Registrando datos manualmente...")
+    # Registrar ingreso manual
+    registrar_ingreso_manual()
+    # Registrar gasto manual con slider
+    registrar_gasto_con_slider()
 
 # Función para registrar un ingreso manualmente
 def registrar_ingreso_manual():
@@ -147,10 +151,3 @@ def registrar_gasto_con_slider():
     plt.ylabel('Monto')
     plt.xticks(rotation=45)
     st.pyplot(plt)
-
-# Si el usuario eligió "Manual", mostrar opciones para ingresar ingresos y gastos manualmente
-if opcion == "Manual":
-    # Registrar ingreso manual
-    registrar_ingreso_manual()
-    # Registrar gasto manual con slider
-    registrar_gasto_con_slider()
