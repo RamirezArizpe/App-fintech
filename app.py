@@ -22,10 +22,6 @@ def cargar_csv():
     if archivo:
         try:
             df = pd.read_csv(archivo)
-            # Verificar que las columnas requeridas estén en el CSV
-            if "Tipo" not in df.columns or "Monto" not in df.columns:
-                st.error("El archivo CSV no tiene las columnas necesarias (Tipo, Monto).")
-                return
             st.write("Datos cargados exitosamente:")
             st.write(df)
         except Exception as e:
@@ -49,9 +45,24 @@ def mostrar_ejemplo_csv():
     st.download_button(
         label="Descargar archivo ejemplo",
         data=ejemplo.to_csv(index=False),
-        file_name=f"ejemplo_finanzas_{datetime.today().strftime('%Y%m%d')}.csv",
+        file_name="ejemplo_finanzas_personales.csv",
         mime="text/csv"
     )
+
+# Inyectar CSS personalizado para cambiar el color y el grosor del slider
+st.markdown("""
+    <style>
+        /* Cambiar color y grosor del slider */
+        .stSlider .st-bw {
+            width: 100%;
+            height: 12px; /* Hacer el slider más grueso */
+            background-color: #001f3d; /* Azul marino */
+        }
+        .stSlider .st-bw .st-cb {
+            background-color: #FFFFFF; /* Color blanco para el botón del slider */
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 # Función para registrar un ingreso o un gasto
 def registrar_transaccion(tipo):
@@ -65,7 +76,7 @@ def registrar_transaccion(tipo):
 
     # Si es un gasto, añadir valoración de necesidad
     if tipo == "Gasto":
-        valoracion = st.slider("¿Qué tan necesario fue este gasto?", 1, 6)
+        valoracion = st.slider("¿Qué tan necesario fue este gasto?", 1, 6, format="%.0f", help="1 = Totalmente innecesario, 6 = Totalmente necesario")
 
     if st.button(f"Registrar {tipo}"):
         # Convertir la fecha en formato adecuado
