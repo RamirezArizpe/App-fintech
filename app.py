@@ -34,7 +34,6 @@ opcion = st.radio("¿Cómo deseas ingresar los datos?", ("Manual", "Desde archiv
 if opcion == "Desde archivo CSV":
     df_ingresos, df_gastos = cargar_csv()
 
-import io
 
 # Crear un CSV de ejemplo para ingresos y gastos
 def crear_csv_ejemplo():
