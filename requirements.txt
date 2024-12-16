@@ -1,8 +1,6 @@
 streamlit
 matplotlib
 seaborn
-plotly
-io
 pandas
 
 
