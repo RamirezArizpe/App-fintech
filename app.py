@@ -153,22 +153,33 @@ def analizar_gastos(df):
     if porcentaje_ahorro > 20:
         st.warning("🚨 Alerta: Más del 20% de tus gastos podrían ser innecesarios. Revisa tus hábitos de gasto.")
 
-# Ejemplo de formato CSV para carga correcta
-ejemplo = pd.DataFrame({
-    "Descripción": ["Ingreso 1", "Gasto 1", "Ingreso 2", "Gasto 2"],
-    "Monto": [1000, 200, 1500, 100],
-    "Forma de pago": ["transferencia", "efectivo", "depósito", "efectivo"],
-    "Fecha de transacción": ["2024-12-16", "2024-12-16", "2024-12-17", "2024-12-17"],
-    "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto"]
-})
+# Cargar el CSV y ejecutar el análisis
+def app():
+    # Ejemplo de dataframe para pruebas
+    df = pd.DataFrame({
+        "Descripción": ["Ingreso 1", "Gasto 1", "Ingreso 2", "Gasto 2"],
+        "Monto": [1000, 200, 1500, 100],
+        "Forma de pago": ["transferencia", "efectivo", "depósito", "efectivo"],
+        "Fecha de transacción": ["2024-12-16", "2024-12-16", "2024-12-17", "2024-12-17"],
+        "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto"]  # Columna Tipo para diferenciar
+    })
+    
+    # Convertir la columna 'Fecha de transacción' a formato de fecha
+    df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
 
-# Opción para descargar el ejemplo como CSV
-st.download_button(
-    label="Descargar archivo ejemplo",
-    data=ejemplo.to_csv(index=False),
-    file_name="ejemplo_finanzas_personales.csv",
-    mime="text/csv"
-)
+    # Llamar a la función para mostrar análisis
+    mostrar_analisis(df)
+    analizar_gastos(df)
+    
+    st.write("Ejemplo de formato CSV para carga correcta: (no escribas acentos ni caractéres especiales)")
+    st.write(ejemplo)
+    # Opción para descargar el ejemplo como CSV
+    st.download_button(
+        label="Descargar archivo ejemplo",
+        data=ejemplo.to_csv(index=False),
+        file_name="ejemplo_finanzas_personales.csv",
+        mime="text/csv"
+    )
 
 # Inyectar CSS personalizado para cambiar el color y el grosor del slider y el estilo de los botones
 st.markdown("""
@@ -185,43 +196,118 @@ st.markdown("""
 
         /* Cambiar estilo de los botones a pills moradas */
         .stButton > button {
-            background-color: #6a0dad; /* Morado */
+            background-color: #6a1b9a;  /* Morado */
             color: white;
-            border-radius: 20px;
-            font-size: 18px;
+            border-radius: 50px; /* Hacerlo "pill" */
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
         }
         .stButton > button:hover {
-            background-color: #5a009d; /* Morado más oscuro */
+            background-color: #9c4dcc;  /* Morado más claro al pasar el ratón */
+        }
+
+        /* Cambiar el estilo del radio button */
+        .stRadio > div {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+        }
+
+        /* Cambiar el estilo de las opciones del radio button a pills moradas */
+        .stRadio label {
+            background-color: #6a1b9a;
+            color: white;
+            border-radius: 50px;
+            font-size: 16px;
+            padding: 8px 20px;
+        }
+
+        .stRadio input:checked + label {
+            background-color: #9c4dcc; /* Morado más claro cuando se selecciona */
+        }
+
+        /* Estilo de los radio buttons */
+        .stRadio .st-bw {
+            color: white; /* Color de texto blanco en los botones */
+        }
+
+        /* Sin fondo para la pregunta */
+        .stTitle, .stSubheader, .stMarkdown {
+            background: none !important;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# Interfaz de entrada para agregar datos
-st.title("Registro de Movimiento Financiero")
-opcion = st.selectbox("Selecciona una opción", ["Cargar archivo CSV", "Ingresar datos manualmente"])
+# Función para registrar un ingreso o un gasto
+def registrar_transaccion(tipo):
+    st.title(f"Registrar {tipo}")
 
-if opcion == "Cargar archivo CSV":
-    cargar_csv()
-else:
-    # Ingreso manual de datos
-    descripcion = st.text_input("Descripción")
-    monto = st.number_input("Monto", min_value=0.01, step=0.01)
-    forma_pago = st.selectbox("Forma de pago", formas_pago)
-    tipo = st.radio("Tipo de Movimiento", ("Ingreso", "Gasto"))
-    fecha_transaccion = st.date_input("Fecha de transacción", min_value=datetime(2000, 1, 1), max_value=datetime.today())
-    valoracion = st.slider("Valoración de la Necesidad (1: Muy innecesario, 5: Muy necesario)", 1, 5, 3)
+    # Campos comunes para ingreso y gasto
+    descripcion = st.text_input(f"Descripción del {tipo.lower()}")
+    monto = st.number_input("Monto en pesos mexicanos", min_value=0.0)
+    pago = st.selectbox("Forma de pago", formas_pago)
+    fecha = st.date_input("Fecha de transacción", datetime.today())
 
-    if st.button("Registrar movimiento"):
-        # Crear un DataFrame para agregar los datos
-        nuevo_registro = pd.DataFrame({
-            "Descripción": [descripcion],
-            "Monto": [monto],
-            "Forma de pago": [forma_pago],
-            "Fecha de transacción": [fecha_transaccion],
-            "Tipo": [tipo],
-            "Valoración": [valoracion]
-        })
+    # Si es un gasto, añadir valoración de necesidad
+    if tipo == "Gasto":
+        valoracion = st.slider(
+            "¿Qué tan necesario fue este gasto?", 
+            min_value=1, 
+            max_value=6, 
+            step=1
+        )
+        st.markdown("""
+            <style>
+                /* Estilo para el texto explicativo */
+                .stSlider + .stText {
+                    font-size: 14px;
+                    color: #333;
+                    font-style: italic;
+                }
+            </style>
+            <p style="font-size: 14px; color: #333; font-style: italic;">1 = Totalmente innecesario, 6 = Totalmente necesario</p>
+        """, unsafe_allow_html=True)
 
-        # Guardar el nuevo registro en un archivo CSV (actualiza el archivo existente)
-        nuevo_registro.to_csv("finanzas_personales.csv", mode='a', header=False, index=False)
-        st.success("Movimiento registrado exitosamente!")
+    if st.button(f"Registrar {tipo}"):
+        # Convertir la fecha en formato adecuado
+        fecha_str = fecha.strftime('%Y-%m-%d')
+
+        if tipo == "Ingreso":
+            st.write(f"Ingreso registrado: Descripción: {descripcion}, Monto: {monto}, Forma de pago: {pago}, Fecha: {fecha_str}")
+        elif tipo == "Gasto":
+            st.write(f"Gasto registrado: Descripción: {descripcion}, Monto: {monto}, Forma de pago: {pago}, Fecha: {fecha_str}, Valoración: {valoracion}")
+
+# Función principal que permite elegir entre ingresar manualmente o cargar CSV
+def app():
+    # Añadir la pregunta antes de las opciones
+    st.title("¿Qué deseas registrar?")
+    
+    # Botón para elegir entre "Ingreso Manual" o "Carga desde CSV"
+    opcion = st.radio("Selecciona cómo deseas registrar tus datos", ["Ingreso Manual", "Carga desde CSV"])
+
+    if opcion == "Ingreso Manual":
+        # Subopciones para elegir entre Ingreso o Gasto
+        transaccion = st.radio("¿Qué deseas registrar?", ["Ingreso", "Gasto"])
+
+        # Mostrar el formulario según la selección
+        registrar_transaccion(transaccion)
+    
+    elif opcion == "Carga desde CSV":
+        mostrar_ejemplo_csv()
+        cargar_csv()
+def mostrar_ejemplo_csv():
+    # Ejemplo de cómo debería verse el CSV
+    ejemplo = pd.DataFrame({
+        "Descripción": ["Ingreso 1", "Gasto 1", "Ingreso 2", "Gasto 2"],
+        "Monto": [1000, 200, 1500, 100],
+        "Forma de pago": ["transferencia", "efectivo", "depósito", "efectivo"],
+        "Fecha de transacción": ["2024-12-16", "2024-12-16", "2024-12-17", "2024-12-17"],
+        "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto"]
+    })
+    st.write("Ejemplo de formato CSV para carga correcta: (no escribas acentos ni caracteres especiales)")
+    st.write(ejemplo)
+
+# Ejecutar la aplicación
+if __name__ == "__main__":
+    app()
