@@ -26,6 +26,7 @@ def cargar_csv():
             st.write(df)
         except Exception as e:
             st.error(f"Error al cargar el archivo: {e}")
+            print(df)
 
 # Función para mostrar un ejemplo de archivo CSV
 def mostrar_ejemplo_csv():
