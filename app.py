@@ -35,7 +35,7 @@ def mostrar_ejemplo_csv():
         "Monto": [1000, 200, 1500, 100],
         "Forma de pago": ["transferencia", "efectivo", "depósito", "efectivo"],
         "Fecha de transacción": ["2024-12-16", "2024-12-16", "2024-12-17", "2024-12-17"],
-        "Valoración gasto": [None, 3, None, 4],  # Valoración sólo para gastos
+        "Valoración gasto": [1, 3, 6, 4],  # Valoración sólo para gastos
         "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto"]  # Columna Tipo para diferenciar
     })
     
@@ -113,8 +113,7 @@ def registrar_transaccion(tipo):
             "¿Qué tan necesario fue este gasto?", 
             min_value=1, 
             max_value=6, 
-            step=1, 
-            help="1 = Totalmente innecesario, 6 = Totalmente necesario"
+            step=1
         )
         st.markdown("""
             <style>
