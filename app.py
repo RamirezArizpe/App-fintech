@@ -79,8 +79,11 @@ def agregar_gasto():
 
 # Función principal que permite elegir entre ingresar manualmente o cargar CSV
 def app():
-    st.sidebar.title("Menú de Finanzas Personales")
-    opcion = st.sidebar.radio("¿Qué deseas registrar?", ["Ingreso", "Gasto", "Cargar Datos desde CSV", "Ver Ejemplo CSV"])
+    # Añadir la pregunta antes de las opciones
+    st.title("¿Qué deseas registrar?")
+    
+    # Menú lateral con las opciones de registro
+    opcion = st.radio("Selecciona una opción", ["Ingreso", "Gasto", "Cargar Datos desde CSV", "Ver Ejemplo CSV"])
 
     if opcion == "Ingreso":
         agregar_ingreso()
@@ -94,3 +97,4 @@ def app():
 # Ejecutar la aplicación
 if __name__ == "__main__":
     app()
+
