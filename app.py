@@ -46,6 +46,13 @@ def mostrar_analisis(df):
     sns.countplot(data=df, x='Tipo', palette="Set2")
     plt.title("Distribución de Ingresos vs Gastos")
     st.pyplot(fig)
+    
+    # Apartado explicativo
+    st.markdown("""
+        ### ¿Qué significa este gráfico?
+        Este gráfico muestra la distribución de los ingresos y los gastos en tus registros. 
+        Cada barra representa la cantidad de transacciones de tipo 'Ingreso' o 'Gasto', lo que te permite ver cuántas veces has registrado cada tipo de transacción.
+    """)
 
     # Gráfico de ingresos y gastos por mes
     df['Mes-Año'] = df['Fecha'].dt.to_period('M')
@@ -60,10 +67,24 @@ def mostrar_analisis(df):
     plt.ylabel("Monto en Pesos")
     plt.legend()
     st.pyplot(fig)
-    
+
+    # Apartado explicativo
+    st.markdown("""
+        ### ¿Qué significa este gráfico?
+        Este gráfico muestra la evolución mensual de los ingresos y los gastos. 
+        Permite comparar cómo varían tus ingresos y gastos a lo largo del tiempo, ayudándote a identificar tendencias y comportamientos financieros.
+    """)
+
     # Gráfico interactivo de formas de pago (usando Plotly)
     fig = px.pie(df, names='Forma de pago', title='Distribución de Formas de Pago')
     st.plotly_chart(fig)
+
+    # Apartado explicativo
+    st.markdown("""
+        ### ¿Qué significa este gráfico?
+        Este gráfico circular muestra la distribución de las formas de pago utilizadas en tus transacciones. 
+        Cada segmento representa el porcentaje de uso de cada forma de pago (transferencia, depósito, efectivo), dándote una visión general de cómo prefieres realizar tus pagos.
+    """)
 
     # Insights de los datos
     st.write("### Insights:")
@@ -84,6 +105,7 @@ def mostrar_analisis(df):
     formas_pago_counts = df['Forma de pago'].value_counts()
     st.write("### Frecuencia de Formas de Pago:")
     st.write(formas_pago_counts)
+
 
 # Función para mostrar un ejemplo de archivo CSV
 def mostrar_ejemplo_csv():
