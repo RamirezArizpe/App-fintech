@@ -91,8 +91,6 @@ if opcion == "CSV":
 elif opcion == "Manual":
     # Registrar ingreso manual
     registrar_ingreso_manual()
-    # Registrar gasto manual con slider
-    registrar_gasto_con_slider()
 
 # Función para registrar un ingreso manualmente
 def registrar_ingreso_manual():
