@@ -39,8 +39,7 @@ def mostrar_ejemplo_csv():
         "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto"]  # Columna Tipo para diferenciar
     })
     
-    st.write("Ejemplo de formato CSV para carga correcta: 
-    (no escribas acentos ni caractéres especiales)")
+    st.write("Ejemplo de formato CSV para carga correcta: (no escribas acentos ni caractéres especiales)")
     st.write(ejemplo)
     # Opción para descargar el ejemplo como CSV
     st.download_button(
