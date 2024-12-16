@@ -277,6 +277,24 @@ def mostrar_ejemplo_csv():
     })
     st.write("Ejemplo de formato CSV para carga correcta: (no escribas acentos ni caracteres especiales)")
     st.write(ejemplo)
+import numpy as np
+
+# Definimos la matriz de coeficientes A (relaciones entre ingresos y gastos)
+# A: [ Salario, Inversiones ]
+#      [ Alquiler, Comida, Entretenimiento ]
+A = np.array([[0.7, 0.3],  # Salario
+              [0.5, 0.4],  # Inversiones
+              [0.3, 0.5]])  # Otras fuentes
+
+# Vector b: el total de gastos en cada categoría
+b = np.array([1000, 500, 300])  # Gastos: Alquiler, Comida, Entretenimiento
+
+# Resolviendo el sistema de ecuaciones A * x = b
+# x es el vector [ Salario, Inversiones ]
+x = np.linalg.solve(A, b)
+
+print("Salario:", x[0])
+print("Inversiones:", x[1])
 
 # Ejecutar la aplicación
 if __name__ == "__main__":
