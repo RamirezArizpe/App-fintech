@@ -72,28 +72,6 @@ def registrar_transaccion(tipo):
         elif tipo == "Gasto":
             st.write(f"Gasto registrado: Descripción: {descripcion}, Monto: {monto}, Forma de pago: {pago}, Fecha: {fecha_str}, Valoración: {valoracion}")
 
-# Función principal que permite elegir entre ingresar manualmente o cargar CSV
-def app():
-    # Añadir la pregunta antes de las opciones
-    st.title("¿Qué deseas registrar?")
-    
-    # Botón para elegir entre "Ingreso Manual" o "Carga desde CSV"
-    opcion = st.radio("Selecciona cómo deseas registrar tus datos", ["Ingreso Manual", "Carga desde CSV"])
-
-    if opcion == "Ingreso Manual":
-        # Subopciones para elegir entre Ingreso o Gasto
-        transaccion = st.radio("¿Qué deseas registrar?", ["Ingreso", "Gasto"])
-
-        # Mostrar el formulario según la selección
-        registrar_transaccion(transaccion)
-    
-    elif opcion == "Carga desde CSV":
-        mostrar_ejemplo_csv()
-        cargar_csv()
-
-# Ejecutar la aplicación
-if __name__ == "__main__":
-    app()
 
 # Ejecutar la aplicación
 if __name__ == "__main__":
