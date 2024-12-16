@@ -109,7 +109,7 @@ def registrar_transaccion(tipo):
 
     # Si es un gasto, añadir valoración de necesidad
     if tipo == "Gasto":
-    valoracion = st.slider(
+        valoracion = st.slider(
     "¿Qué tan necesario fue este gasto?", 
     min_value=1, 
     max_value=6, 
