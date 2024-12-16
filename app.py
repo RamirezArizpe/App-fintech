@@ -1,85 +1,83 @@
 import streamlit as st
 import pandas as pd
+import os
 
 # Agregar el logo al encabezado
-st.image("https://raw.githubusercontent.com/RamirezArizpe/App-fintech/main/encabezado%20app.jpg", width=4000)
+st.image("https://raw.githubusercontent.com/RamirezArizpe/App-fintech/main/encabezado%20app.jpg", width=400)
 
-# Crear DataFrames vacíos para ingresos y gastos
-df_ingresos = pd.DataFrame(columns=['Descripción', 'Monto', 'Fecha de registro', 'Forma de pago'])
-df_gastos = pd.DataFrame(columns=['Descripción', 'Monto', 'Fecha de registro', 'Forma de pago', 'Valoración'])
+# Ruta para guardar los datos
+DATA_PATH = 'finanzas_personales.csv'
 
-# Función para registrar un ingreso
-def registrar_ingreso(descripcion, monto, forma_pago, fecha):
-    global df_ingresos
-    nuevo_ingreso = {'Descripción': descripcion, 'Monto': monto, 'Fecha de registro': fecha, 'Forma de pago': forma_pago}
-    df_ingresos = pd.concat([df_ingresos, pd.DataFrame([nuevo_ingreso])], ignore_index=True)
-
-# Función para registrar un gasto
-def registrar_gasto(descripcion, monto, forma_pago, valoracion, fecha):
-    global df_gastos
-    nuevo_gasto = {'Descripción': descripcion, 'Monto': monto, 'Fecha de registro': fecha, 'Forma de pago': forma_pago, 'Valoración': valoracion}
-    df_gastos = pd.concat([df_gastos, pd.DataFrame([nuevo_gasto])], ignore_index=True)
-
-# Función para solicitar datos del usuario y registrar movimientos
-def solicitar_datos():
-    tipo = input("¿Desea registrar un ingreso o un gasto? (ingreso/gasto/salir): ").strip().lower()
-    if tipo == 'ingreso':
-        descripcion = input("Descripción del ingreso: ")
-        monto = float(input("Monto del ingreso: "))
-        forma_pago = input("Forma de pago: ")
-        fecha_mov = date_input('Fecha de registro')
-
-        def on_button_clicked(b):
-            fecha = fecha_mov.value.strftime('%d/%m/%Y')
-            registrar_ingreso(descripcion, monto, forma_pago, fecha)
-            print(f"Ingreso registrado: {descripcion}, {monto}, {forma_pago}, {fecha}")
-            button.close()  # Cerrar el botón después de un clic
-
-        button.on_click(on_button_clicked)
-
-    elif tipo == 'gasto':
-        descripcion = input("Descripción del gasto: ")
-        monto = float(input("Monto del gasto: "))
-        forma_pago = input("Forma de pago: ")
-        valoracion = int(input("Valoración del gasto (1-6): "))
-        fecha_mov = date_input('Fecha de registro')
-
-        def on_button_clicked(b):
-            fecha = fecha_mov.value.strftime('%d/%m/%Y')
-            registrar_gasto(descripcion, monto, forma_pago, valoracion, fecha)
-            print(f"Gasto registrado: {descripcion}, {monto}, {forma_pago}, {valoracion}, {fecha}")
-            button.close()  # Cerrar el botón después de un clic
-
-        button.on_click(on_button_clicked)
-
-    elif tipo == 'salir':
-        return
+# Función para cargar los datos desde el archivo CSV si existe
+def cargar_datos():
+    if os.path.exists(DATA_PATH):
+        df = pd.read_csv(DATA_PATH)
+        df['Fecha de registro'] = pd.to_datetime(df['Fecha de registro'])
+        return df
     else:
-        print("Opción no válida. Por favor, intente de nuevo.")
-        solicitar_datos()
+        return pd.DataFrame(columns=['Tipo', 'Descripción', 'Monto', 'Fecha de registro', 'Forma de pago', 'Valoración'])
 
+# Función para guardar los datos en el archivo CSV
+def guardar_datos(df):
+    df.to_csv(DATA_PATH, index=False)
 
-# Función para calcular y mostrar el balance
-def calcular_balance():
-    # Calcular el balance general del mes (Ingresos - Gastos)
-    df_ingresos['Fecha'] = pd.to_datetime(df_ingresos['Fecha de registro'], format='%d/%m/%Y')
-    df_gastos['Fecha'] = pd.to_datetime(df_gastos['Fecha de registro'], format='%d/%m/%Y')
+# Cargar los datos al inicio
+df_finanzas = cargar_datos()
 
-    # Agrupar por mes y calcular totales
-    df_ingresos['Mes'] = df_ingresos['Fecha'].dt.strftime('%Y-%m')
-    df_gastos['Mes'] = df_gastos['Fecha'].dt.strftime('%Y-%m')
+# Función para registrar un movimiento (ingreso o gasto)
+def registrar_movimiento(tipo, descripcion, monto, forma_pago, valoracion, fecha):
+    global df_finanzas
+    nuevo_movimiento = {'Tipo': tipo, 'Descripción': descripcion, 'Monto': monto, 'Fecha de registro': fecha, 'Forma de pago': forma_pago, 'Valoración': valoracion}
+    df_finanzas = df_finanzas.append(nuevo_movimiento, ignore_index=True)
+    guardar_datos(df_finanzas)
+    st.success(f"{tipo.capitalize()} registrado exitosamente.")
+
+# Función para mostrar el balance
+def mostrar_balance():
+    df_ingresos = df_finanzas[df_finanzas['Tipo'] == 'ingreso']
+    df_gastos = df_finanzas[df_finanzas['Tipo'] == 'gasto']
+
+    df_ingresos['Mes'] = df_ingresos['Fecha de registro'].dt.strftime('%Y-%m')
+    df_gastos['Mes'] = df_gastos['Fecha de registro'].dt.strftime('%Y-%m')
 
     resumen_ingresos = df_ingresos.groupby('Mes').agg({'Monto': 'sum'}).rename(columns={'Monto': 'Ingresos'})
     resumen_gastos = df_gastos.groupby('Mes').agg({'Monto': 'sum'}).rename(columns={'Monto': 'Gastos'})
 
-    # Unir los resúmenes de ingresos y gastos
     resumen_mensual = pd.merge(resumen_ingresos, resumen_gastos, on='Mes', how='outer').fillna(0)
     resumen_mensual['Balance'] = resumen_mensual['Ingresos'] - resumen_mensual['Gastos']
 
-    # Mostrar resultados
-    print("\nDataFrame de Ingresos:")
-    print(df_ingresos)
-    print("\nDataFrame de Gastos:")
-    print(df_gastos)
-    print("\nResumen mensual:")
-    print(resumen_mensual)
+    st.write("Resumen mensual de ingresos, gastos y balance:")
+    st.dataframe(resumen_mensual)
+
+# Interfaz de usuario
+st.title("App de Finanzas Personales")
+
+# Selección de tipo de movimiento
+tipo = st.selectbox("¿Qué desea registrar?", ["Ingreso", "Gasto"])
+
+# Entradas según el tipo de movimiento
+descripcion = st.text_input("Descripción")
+monto = st.number_input("Monto", min_value=0.01, format="%.2f")
+forma_pago = st.selectbox("Forma de pago", ["Efectivo", "Tarjeta de crédito", "Tarjeta de débito", "Transferencia", "Otros"])
+
+if tipo == "Gasto":
+    valoracion = st.slider("Valoración del gasto (1-6)", 1, 6, 3)
+else:
+    valoracion = None  # Los ingresos no tienen valoración
+
+fecha = st.date_input("Fecha de registro")
+
+# Botón para registrar
+if st.button(f"Registrar {tipo.lower()}"):
+    if descripcion and monto > 0 and forma_pago:
+        registrar_movimiento(tipo.lower(), descripcion, monto, forma_pago, valoracion, fecha)
+    else:
+        st.error("Por favor, complete todos los campos.")
+
+# Mostrar balance mensual
+if st.checkbox("Ver balance mensual"):
+    mostrar_balance()
+
+# Mostrar los registros actuales
+if st.checkbox("Ver registros actuales"):
+    st.write(df_finanzas)
