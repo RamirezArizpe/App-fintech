@@ -134,23 +134,20 @@ def mostrar_analisis(df):
         else:
             st.write("No se han registrado valoraciones para los gastos.")
 
+# Ejemplo de dataframe para pruebas
+ejemplo = pd.DataFrame({
+    "Descripción": ["Ingreso 1", "Gasto 1", "Ingreso 2", "Gasto 2"],
+    "Monto": [1000, 200, 1500, 100],
+    "Forma de pago": ["transferencia", "efectivo", "depósito", "efectivo"],
+    "Fecha de transacción": ["2024-12-16", "2024-12-16", "2024-12-17", "2024-12-17"],
+    "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto"],  # Columna Tipo para diferenciar
+    "Valoración": [3, 4, 2, 5]  # Valoración de necesidad de los gastos
+})
+
 # Cargar el CSV y ejecutar el análisis
 def app():
-    # Ejemplo de dataframe para pruebas
-    df = pd.DataFrame({
-        "Descripción": ["Ingreso 1", "Gasto 1", "Ingreso 2", "Gasto 2"],
-        "Monto": [1000, 200, 1500, 100],
-        "Forma de pago": ["transferencia", "efectivo", "depósito", "efectivo"],
-        "Fecha de transacción": ["2024-12-16", "2024-12-16", "2024-12-17", "2024-12-17"],
-        "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto"],  # Columna Tipo para diferenciar
-        "Valoración": [3, 4, 2, 5]  # Valoración de necesidad de los gastos
-    })
-    
-    # Convertir la columna 'Fecha de transacción' a formato de fecha
-    df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
-
     # Llamar a la función para mostrar análisis
-    mostrar_analisis(df)
+    mostrar_analisis(ejemplo)
     
     st.write("Ejemplo de formato CSV para carga correcta: (no escribas acentos ni caractéres especiales)")
     st.write(ejemplo)
@@ -164,3 +161,4 @@ def app():
 
 # Ejecutar la aplicación
 app()
+
