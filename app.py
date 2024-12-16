@@ -61,9 +61,28 @@ def clasificar_gastos(df):
 
     if "Valoración gasto" in df.columns:
         gastos = df[df["Tipo"] == "Gasto"]
+
+        # Traducción de etiquetas de valoración
+        etiquetas = {
+            1: "Totalmente innecesario",
+            2: "Muy innecesario",
+            3: "Innecesario",
+            4: "Necesario",
+            5: "Muy necesario",
+            6: "Totalmente necesario"
+        }
+        gastos["Etiqueta Valoración"] = gastos["Valoración gasto"].map(etiquetas)
+
+        # Identificar gastos menos necesarios
         innecesarios = gastos[gastos["Valoración gasto"] <= 3]
         st.write("### Gastos menos necesarios:")
-        st.write(innecesarios.sort_values(by="Valoración gasto", ascending=True))
+
+        # Agrupar por tipo y descripción
+        if "Tipo" in innecesarios.columns and "Descripción" in innecesarios.columns:
+            agrupados = innecesarios.groupby(["Tipo", "Descripción"]).agg({"Monto": "sum"}).sort_values(by="Monto", ascending=False)
+            st.write(agrupados)
+        else:
+            st.write(innecesarios.sort_values(by="Valoración gasto", ascending=True))
 
 # Cálculo de ahorro mensual
 def calcular_ahorro(df):
