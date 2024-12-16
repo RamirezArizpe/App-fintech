@@ -33,6 +33,64 @@ opcion = st.radio("¿Cómo deseas ingresar los datos?", ("Manual", "Desde archiv
 # Si el usuario selecciona "Desde archivo CSV", cargamos el CSV
 if opcion == "Desde archivo CSV":
     df_ingresos, df_gastos = cargar_csv()
+import pandas as pd
+import streamlit as st
+import io
+
+# Crear un CSV de ejemplo para ingresos y gastos
+def crear_csv_ejemplo():
+    # Crear un DataFrame de ejemplo
+    data_ingresos = {
+        "Descripción": ["Ingreso Ejemplo 1", "Ingreso Ejemplo 2"],
+        "Monto": [500, 1000],
+        "Fecha de registro": ["2023-12-15", "2023-12-16"],
+        "Forma de pago": ["Efectivo", "Tarjeta"]
+    }
+    data_gastos = {
+        "Descripción": ["Gasto Ejemplo 1", "Gasto Ejemplo 2"],
+        "Monto": [200, 150],
+        "Fecha de registro": ["2023-12-15", "2023-12-16"],
+        "Forma de pago": ["Efectivo", "Transferencia"],
+        "Valoración": [4, 5]
+    }
+
+    # Crear DataFrames
+    df_ingresos = pd.DataFrame(data_ingresos)
+    df_gastos = pd.DataFrame(data_gastos)
+
+    # Guardar ambos DataFrames como CSV en un archivo temporal
+    csv_ingresos = df_ingresos.to_csv(index=False)
+    csv_gastos = df_gastos.to_csv(index=False)
+
+    # Combinar ambos CSV en un solo archivo (puedes ofrecer dos archivos separados si lo prefieres)
+    combined_csv = csv_ingresos + "\n\n" + csv_gastos
+
+    return combined_csv
+
+# Función para descargar el archivo de ejemplo
+def descargar_csv_ejemplo():
+    # Crear el CSV de ejemplo
+    csv_ejemplo = crear_csv_ejemplo()
+
+    # Crear un buffer en memoria para poder descargar el archivo
+    buffer = io.StringIO(csv_ejemplo)
+
+    # Botón para descargar el archivo
+    st.download_button(
+        label="Descargar ejemplo CSV",
+        data=buffer.getvalue(),
+        file_name="ejemplo_finanzas.csv",
+        mime="text/csv"
+    )
+
+# Mostrar opciones para elegir si manual o CSV
+opcion = st.radio("Selecciona cómo ingresar los datos", ["Manual", "CSV"], horizontal=True)
+
+if opcion == "CSV":
+    descargar_csv_ejemplo()
+elif opcion == "Manual":
+    # Aquí puedes colocar el resto de tu código de registro manual
+    st.write("Registrando datos manualmente...")
 
 # Función para registrar un ingreso manualmente
 def registrar_ingreso_manual():
