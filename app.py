@@ -38,7 +38,7 @@ def cargar_csv():
 def mostrar_analisis(df):
     st.title("Análisis Gráfico e Insights de tus Finanzas")
 
-        # Crear un contenedor con dos columnas: una para las gráficas y otra para el texto
+    # Crear un contenedor con dos columnas: una para las gráficas y otra para el texto
     col1, col2 = st.columns([2, 1])
 
     with col1:
@@ -93,10 +93,6 @@ def mostrar_analisis(df):
         st.write("### Frecuencia de Formas de Pago:")
         st.write(formas_pago_counts)
 
-        # Estadísticas de las formas de pago
-        formas_pago_counts = df_filtrado['Forma de pago'].value_counts()
-        st.write("### Frecuencia de Formas de Pago:")
-        st.write(formas_pago_counts)
 
 # Cargar el CSV y ejecutar el análisis
 def app():
