@@ -97,40 +97,22 @@ def mostrar_analisis(df):
         st.write("### Frecuencia de Formas de Pago:")
         st.write(formas_pago_counts)
 
-        # Inicializar listas en el estado de la sesión si no existen
-if 'transacciones_ingresos' not in st.session_state:
-    st.session_state['transacciones_ingresos'] = []
-if 'transacciones_gastos' not in st.session_state:
-    st.session_state['transacciones_gastos'] = []
-if 'formas_pago' not in st.session_state:
-    st.session_state['formas_pago'] = ['Efectivo', 'Tarjeta', 'Transferencia']
-# Convertir listas a DataFrames
-df_ingresos = pd.DataFrame(st.session_state['transacciones_ingresos'])
-df_gastos = pd.DataFrame(st.session_state['transacciones_gastos'])
+        # Cálculo de Insights basado en la matriz de coeficientes A
+        st.write("### Insights sobre tu salario e inversiones")
+        A = np.array([[0.7, 0.3],  # Salario, Inversiones
+                      [0.5, 0.4],  # Inversiones
+                      [0.3, 0.5]])  # Otras fuentes
+        b = np.array([total_gastos * 0.5, total_gastos * 0.3, total_gastos * 0.2])  # Estimaciones basadas en porcentaje de gastos
+
+        try:
+            # Resolviendo el sistema de ecuaciones A * x = b
+            x = np.linalg.solve(A, b)
+            st.write(f"Salario estimado: ${x[0]:.2f}")
+            st.write(f"Inversiones estimadas: ${x[1]:.2f}")
+        except np.linalg.LinAlgError:
+            st.error("No se pudo calcular el salario e inversiones debido a un error en los datos.")
+
 # Función para registrar un ingreso o gasto
-
-# Graficar Gastos por Categoría
-st.subheader('Gastos por Categoría')
-fig, ax = plt.subplots()
-if not df_gastos.empty:
-    df_gastos.groupby('Descripción')['Monto'].sum().plot(kind='bar', ax=ax)
-ax.set_title('Gastos por Categoría')
-ax.set_xlabel('Categoría')
-ax.set_ylabel('Monto')
-ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
-st.pyplot(fig)
-
-# Graficar Ingresos por Categoría
-st.subheader('Ingresos por Categoría')
-fig, ax = plt.subplots()
-if not df_ingresos.empty:
-    df_ingresos.groupby('Descripción')['Monto'].sum().plot(kind='bar', color="purple", ax=ax)
-ax.set_title('Ingresos por Categoría')
-ax.set_xlabel('Categoría')
-ax.set_ylabel('Monto')
-ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
-st.pyplot(fig)
-
 def registrar_transaccion(tipo):
     st.title(f"Registrar {tipo}")
     descripcion = st.text_input(f"Descripción del {tipo.lower()}")
