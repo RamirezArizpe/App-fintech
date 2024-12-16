@@ -26,7 +26,19 @@ def analizar_ingresos_gastos(df):
 
     st.write(f"**Total de Ingresos:** ${ingresos:.2f}")
     st.write(f"**Total de Gastos:** ${gastos:.2f}")
-    
+
+    if ingresos > 0:
+        proporcion_gastos = (gastos / ingresos) * 100
+        st.write(f"**Proporción de Gastos sobre Ingresos:** {proporcion_gastos:.2f}%")
+        if proporcion_gastos > 70:
+            st.warning("Tus gastos representan una alta proporción de tus ingresos. Considera ajustar tus gastos para mejorar tu ahorro.")
+        elif proporcion_gastos > 50:
+            st.info("Tus gastos están en un rango moderado respecto a tus ingresos. Monitorea para evitar desequilibrios.")
+        else:
+            st.success("Tus gastos están bien controlados en relación con tus ingresos. ¡Buen trabajo!")
+    else:
+        st.error("No hay ingresos registrados, no se puede calcular la proporción de gastos.")
+
     # Gráfico de barras comparativo
     fig, ax = plt.subplots()
     ax.bar(["Ingresos", "Gastos"], [ingresos, gastos], color=["green", "red"])
@@ -103,4 +115,3 @@ def app():
 
 if __name__ == "__main__":
     app()
-
