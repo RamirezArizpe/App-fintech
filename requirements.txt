@@ -2,6 +2,6 @@ streamlit
 matplotlib
 seaborn
 plotly
-
+io
 
 
