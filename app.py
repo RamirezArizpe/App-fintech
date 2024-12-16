@@ -11,14 +11,6 @@ st.image("https://raw.githubusercontent.com/RamirezArizpe/App-fintech/main/encab
 # Lista inicial de formas de pago
 formas_pago = ['transferencia', 'depósito', 'efectivo']
 
-# Función para agregar forma de pago si no está en la lista
-def agregar_forma_pago(pago):
-    if pago not in formas_pago:
-        formas_pago.append(pago)
-        st.write(f"Forma de pago '{pago}' añadida a la lista.")
-    else:
-        st.write(f"La forma de pago '{pago}' ya está en la lista.")
-
 # Función para cargar datos desde un archivo CSV
 def cargar_csv():
     archivo = st.file_uploader("Cargar archivo CSV", type=["csv"])
@@ -38,18 +30,28 @@ def cargar_csv():
 def mostrar_analisis(df):
     st.title("Análisis Gráfico e Insights de tus Finanzas")
 
+    # Crear columnas para organizar las gráficas y el texto
+    col1, col2 = st.columns(2)
+
     # Convertir la columna 'Fecha de transacción' a formato de fecha
     df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
     
-    # Crear columnas para disposición en la página
-    col1, col2 = st.columns([2, 1])  # 2 para la columna de gráficas, 1 para la de texto
+    # Filtro dinámico para seleccionar entre total o mes
+    filtro_mes = st.selectbox("Selecciona la opción para analizar", ["Total", "Por Mes"])
 
-    with col1:
-        # Filtro dinámico de visualización por mes o total
-        filtro = st.selectbox("Mostrar por:", ["Total", "Por mes"])
-        
-        if filtro == "Por mes":
-            # Gráfico de Ingresos vs Gastos por mes
+    with col1:  # Gráficas en la columna izquierda
+        # Gráfico de Ingresos vs Gastos
+        if filtro_mes == "Total":
+            # Gráfico de total de ingresos vs total de gastos
+            ingresos_totales = df[df['Tipo'] == 'Ingreso']['Monto'].sum()
+            gastos_totales = df[df['Tipo'] == 'Gasto']['Monto'].sum()
+            fig = plt.figure(figsize=(10, 6))
+            plt.bar(['Ingresos', 'Gastos'], [ingresos_totales, gastos_totales], color=['green', 'red'])
+            plt.title("Ingresos vs Gastos (Total)")
+            plt.ylabel("Monto en Pesos")
+            st.pyplot(fig)
+        else:
+            # Gráfico de ingresos vs gastos por mes
             df['Mes-Año'] = df['Fecha'].dt.to_period('M')
             ingresos_mes = df[df['Tipo'] == 'Ingreso'].groupby('Mes-Año')['Monto'].sum()
             gastos_mes = df[df['Tipo'] == 'Gasto'].groupby('Mes-Año')['Monto'].sum()
@@ -63,20 +65,14 @@ def mostrar_analisis(df):
             plt.legend()
             st.pyplot(fig)
 
-        elif filtro == "Total":
-            # Gráfico de Ingresos vs Gastos Totales
-            ingresos_total = df[df['Tipo'] == 'Ingreso']['Monto'].sum()
-            gastos_total = df[df['Tipo'] == 'Gasto']['Monto'].sum()
+        # Gráfico interactivo de formas de pago (usando Plotly)
+        fig = px.pie(df, names='Forma de pago', title='Distribución de Formas de Pago')
+        st.plotly_chart(fig)
 
-            fig = plt.figure(figsize=(10, 6))
-            plt.bar(['Ingresos', 'Gastos'], [ingresos_total, gastos_total], color=['green', 'red'])
-            plt.title("Ingresos vs Gastos Totales")
-            plt.ylabel("Monto en Pesos")
-            st.pyplot(fig)
-
-    with col2:
-        # Texto y datos de la transacción
+    with col2:  # Texto en la columna derecha
+        # Insights de los datos
         st.write("### Insights:")
+        
         total_ingresos = df[df['Tipo'] == 'Ingreso']['Monto'].sum()
         total_gastos = df[df['Tipo'] == 'Gasto']['Monto'].sum()
         balance = total_ingresos - total_gastos
@@ -134,7 +130,15 @@ def registrar_transaccion(tipo):
             max_value=6, 
             step=1
         )
-        st.markdown("""<style> .stSlider + .stText { font-size: 14px; color: #333; font-style: italic; } </style>
+        st.markdown("""
+            <style>
+                /* Estilo para el texto explicativo */
+                .stSlider + .stText {
+                    font-size: 14px;
+                    color: #333;
+                    font-style: italic;
+                }
+            </style>
             <p style="font-size: 14px; color: #333; font-style: italic;">1 = Totalmente innecesario, 6 = Totalmente necesario</p>
         """, unsafe_allow_html=True)
 
@@ -151,7 +155,7 @@ def registrar_transaccion(tipo):
 def app():
     # Añadir la pregunta antes de las opciones
     st.title("¿Qué deseas registrar?")
-
+    
     # Botón para elegir entre "Ingreso Manual" o "Carga desde CSV"
     opcion = st.radio("Selecciona cómo deseas registrar tus datos", ["Ingreso Manual", "Carga desde CSV"])
 
