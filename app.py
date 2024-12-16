@@ -11,6 +11,14 @@ st.image("https://raw.githubusercontent.com/RamirezArizpe/App-fintech/main/encab
 # Lista inicial de formas de pago
 formas_pago = ['transferencia', 'depósito', 'efectivo']
 
+# Función para agregar forma de pago si no está en la lista
+def agregar_forma_pago(pago):
+    if pago not in formas_pago:
+        formas_pago.append(pago)
+        st.write(f"Forma de pago '{pago}' añadida a la lista.")
+    else:
+        st.write(f"La forma de pago '{pago}' ya está en la lista.")
+
 # Función para cargar datos desde un archivo CSV
 def cargar_csv():
     archivo = st.file_uploader("Cargar archivo CSV", type=["csv"])
@@ -19,64 +27,71 @@ def cargar_csv():
             df = pd.read_csv(archivo)
             st.write("Datos cargados exitosamente:")
             st.write(df)
-            return df
+            
+            # Mostrar análisis gráfico e insights
+            mostrar_analisis(df)
+            
         except Exception as e:
             st.error(f"Error al cargar el archivo: {e}")
-    return None
 
 # Función para mostrar gráficos y análisis visual
-def mostrar_analisis(df, periodo):
+def mostrar_analisis(df):
     st.title("Análisis Gráfico e Insights de tus Finanzas")
 
-    # Filtrar los datos según el período seleccionado
-    if periodo != 'Total':
+        # Crear un contenedor con dos columnas: una para las gráficas y otra para el texto
+    col1, col2 = st.columns([2, 1])
+
+    with col1:
+        # Convertir la columna 'Fecha de transacción' a formato de fecha
         df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
-        df_filtrado = df[df['Fecha'].dt.to_period('M') == periodo]
-    else:
-        df_filtrado = df
-    
-    # Gráfico de Ingresos vs Gastos por mes
-    fig = plt.figure(figsize=(10, 6))
-    sns.countplot(data=df_filtrado, x='Tipo', palette="Set2")
-    plt.title(f"Distribución de Ingresos vs Gastos - {periodo}")
-    st.pyplot(fig)
 
-    # Gráfico de ingresos y gastos por mes
-    df_filtrado['Mes-Año'] = df_filtrado['Fecha'].dt.to_period('M')
-    ingresos_mes = df_filtrado[df_filtrado['Tipo'] == 'Ingreso'].groupby('Mes-Año')['Monto'].sum()
-    gastos_mes = df_filtrado[df_filtrado['Tipo'] == 'Gasto'].groupby('Mes-Año')['Monto'].sum()
+        # Filtro para seleccionar mes o total
+        opcion_mes = st.selectbox("Selecciona un mes o Total", ["Total"] + list(df['Fecha'].dt.to_period('M').unique().astype(str)))
 
-    fig = plt.figure(figsize=(10, 6))
-    plt.plot(ingresos_mes.index.astype(str), ingresos_mes, label="Ingresos", marker='o')
-    plt.plot(gastos_mes.index.astype(str), gastos_mes, label="Gastos", marker='o')
-    plt.title(f"Ingresos y Gastos Mensuales - {periodo}")
-    plt.xlabel("Mes")
-    plt.ylabel("Monto en Pesos")
-    plt.legend()
-    st.pyplot(fig)
-    
-    # Gráfico interactivo de formas de pago (usando Plotly)
-    fig = px.pie(df_filtrado, names='Forma de pago', title=f'Distribución de Formas de Pago - {periodo}')
-    st.plotly_chart(fig)
+        if opcion_mes == "Total":
+            # Gráfico de Ingresos vs Gastos total
+            ingresos_total = df[df['Tipo'] == 'Ingreso']['Monto'].sum()
+            gastos_total = df[df['Tipo'] == 'Gasto']['Monto'].sum()
+            labels = ['Ingresos', 'Gastos']
+            values = [ingresos_total, gastos_total]
+            fig = plt.figure(figsize=(6, 4))
+            plt.bar(labels, values, color=['green', 'red'])
+            plt.title("Ingresos vs Gastos Total")
+            plt.ylabel("Monto en Pesos")
+            st.pyplot(fig)
+        else:
+            # Filtro dinámico por mes
+            df_mes = df[df['Fecha'].dt.to_period('M').astype(str) == opcion_mes]
+            ingresos_mes = df_mes[df_mes['Tipo'] == 'Ingreso']['Monto'].sum()
+            gastos_mes = df_mes[df_mes['Tipo'] == 'Gasto']['Monto'].sum()
+            labels = ['Ingresos', 'Gastos']
+            values = [ingresos_mes, gastos_mes]
+            fig = plt.figure(figsize=(6, 4))
+            plt.bar(labels, values, color=['green', 'red'])
+            plt.title(f"Ingresos vs Gastos - {opcion_mes}")
+            plt.ylabel("Monto en Pesos")
+            st.pyplot(fig)
 
-    # Insights de los datos
-    st.write("### Insights:")
-    total_ingresos = df_filtrado[df_filtrado['Tipo'] == 'Ingreso']['Monto'].sum()
-    total_gastos = df_filtrado[df_filtrado['Tipo'] == 'Gasto']['Monto'].sum()
-    balance = total_ingresos - total_gastos
-    promedio_ingresos = df_filtrado[df_filtrado['Tipo'] == 'Ingreso']['Monto'].mean()
-    promedio_gastos = df_filtrado[df_filtrado['Tipo'] == 'Gasto']['Monto'].mean()
+    with col2:
+        # Mostrar insights de los datos
+        st.write("### Insights:")
+        
+        total_ingresos = df[df['Tipo'] == 'Ingreso']['Monto'].sum()
+        total_gastos = df[df['Tipo'] == 'Gasto']['Monto'].sum()
+        balance = total_ingresos - total_gastos
+        promedio_ingresos = df[df['Tipo'] == 'Ingreso']['Monto'].mean()
+        promedio_gastos = df[df['Tipo'] == 'Gasto']['Monto'].mean()
 
-    st.write(f"- **Total de Ingresos**: ${total_ingresos:.2f}")
-    st.write(f"- **Total de Gastos**: ${total_gastos:.2f}")
-    st.write(f"- **Balance Neto**: ${balance:.2f}")
-    st.write(f"- **Promedio de Ingresos**: ${promedio_ingresos:.2f}")
-    st.write(f"- **Promedio de Gastos**: ${promedio_gastos:.2f}")
+        st.write(f"- **Total de Ingresos**: ${total_ingresos:.2f}")
+        st.write(f"- **Total de Gastos**: ${total_gastos:.2f}")
+        st.write(f"- **Balance Neto**: ${balance:.2f}")
+        st.write(f"- **Promedio de Ingresos**: ${promedio_ingresos:.2f}")
+        st.write(f"- **Promedio de Gastos**: ${promedio_gastos:.2f}")
 
-    # Estadísticas de las formas de pago
-    formas_pago_counts = df_filtrado['Forma de pago'].value_counts()
-    st.write("### Frecuencia de Formas de Pago:")
-    st.write(formas_pago_counts)
+        # Estadísticas de las formas de pago
+        formas_pago_counts = df['Forma de pago'].value_counts()
+        st.write("### Frecuencia de Formas de Pago:")
+        st.write(formas_pago_counts)
 
 # Función para mostrar un ejemplo de archivo CSV
 def mostrar_ejemplo_csv():
@@ -100,6 +115,103 @@ def mostrar_ejemplo_csv():
         mime="text/csv"
     )
 
+# Inyectar CSS personalizado para cambiar el color y el grosor del slider y el estilo de los botones
+st.markdown("""
+    <style>
+        /* Cambiar color y grosor del slider */
+        .stSlider .st-bw {
+            width: 100%;
+            height: 12px; /* Hacer el slider más grueso */
+            background-color: #001f3d; /* Azul marino */
+        }
+        .stSlider .st-bw .st-cb {
+            background-color: #FFFFFF; /* Color blanco para el botón del slider */
+        }
+
+        /* Cambiar estilo de los botones a pills moradas */
+        .stButton > button {
+            background-color: #6a1b9a;  /* Morado */
+            color: white;
+            border-radius: 50px; /* Hacerlo "pill" */
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+        }
+        .stButton > button:hover {
+            background-color: #9c4dcc;  /* Morado más claro al pasar el ratón */
+        }
+
+        /* Cambiar el estilo del radio button */
+        .stRadio > div {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+        }
+
+        /* Cambiar el estilo de las opciones del radio button a pills moradas */
+        .stRadio label {
+            background-color: #6a1b9a;
+            color: white;
+            border-radius: 50px;
+            font-size: 16px;
+            padding: 8px 20px;
+        }
+
+        .stRadio input:checked + label {
+            background-color: #9c4dcc; /* Morado más claro cuando se selecciona */
+        }
+
+        /* Estilo de los radio buttons */
+        .stRadio .st-bw {
+            color: white; /* Color de texto blanco en los botones */
+        }
+
+        /* Sin fondo para la pregunta */
+        .stTitle, .stSubheader, .stMarkdown {
+            background: none !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# Función para registrar un ingreso o un gasto
+def registrar_transaccion(tipo):
+    st.title(f"Registrar {tipo}")
+
+    # Campos comunes para ingreso y gasto
+    descripcion = st.text_input(f"Descripción del {tipo.lower()}")
+    monto = st.number_input("Monto en pesos mexicanos", min_value=0.0)
+    pago = st.selectbox("Forma de pago", formas_pago)
+    fecha = st.date_input("Fecha de transacción", datetime.today())
+
+    # Si es un gasto, añadir valoración de necesidad
+    if tipo == "Gasto":
+        valoracion = st.slider(
+            "¿Qué tan necesario fue este gasto?", 
+            min_value=1, 
+            max_value=6, 
+            step=1
+        )
+        st.markdown("""
+            <style>
+                /* Estilo para el texto explicativo */
+                .stSlider + .stText {
+                    font-size: 14px;
+                    color: #333;
+                    font-style: italic;
+                }
+            </style>
+            <p style="font-size: 14px; color: #333; font-style: italic;">1 = Totalmente innecesario, 6 = Totalmente necesario</p>
+        """, unsafe_allow_html=True)
+
+    if st.button(f"Registrar {tipo}"):
+        # Convertir la fecha en formato adecuado
+        fecha_str = fecha.strftime('%Y-%m-%d')
+
+        if tipo == "Ingreso":
+            st.write(f"Ingreso registrado: Descripción: {descripcion}, Monto: {monto}, Forma de pago: {pago}, Fecha: {fecha_str}")
+        elif tipo == "Gasto":
+            st.write(f"Gasto registrado: Descripción: {descripcion}, Monto: {monto}, Forma de pago: {pago}, Fecha: {fecha_str}, Valoración: {valoracion}")
+
 # Función principal que permite elegir entre ingresar manualmente o cargar CSV
 def app():
     # Añadir la pregunta antes de las opciones
@@ -111,14 +223,13 @@ def app():
     if opcion == "Ingreso Manual":
         # Subopciones para elegir entre Ingreso o Gasto
         transaccion = st.radio("¿Qué deseas registrar?", ["Ingreso", "Gasto"])
+
+        # Mostrar el formulario según la selección
         registrar_transaccion(transaccion)
     
     elif opcion == "Carga desde CSV":
-        df = cargar_csv()
-        if df is not None:
-            # Filtro para seleccionar mes o total
-            periodo = st.selectbox("Selecciona un periodo", ['Total'] + sorted(df['Fecha de transacción'].apply(lambda x: x[:7]).unique().tolist()))
-            mostrar_analisis(df, periodo)
+        mostrar_ejemplo_csv()
+        cargar_csv()
 
 # Ejecutar la aplicación
 if __name__ == "__main__":
