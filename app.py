@@ -123,6 +123,166 @@ def mostrar_analisis(df):
         st.write("### Frecuencia de Formas de Pago:")
         st.write(formas_pago_counts)
 
+class AnalisisFinanciero:
+    def __init__(self, df):
+        # Convertir a datetime y asegurar tipos de datos
+        self.df = df.copy()
+        self.df['Fecha'] = pd.to_datetime(self.df['Fecha de transacción'])
+        self.df['Monto'] = pd.to_numeric(self.df['Monto'])
+        
+    def preparar_matriz(self):
+        """Convertir DataFrame a matriz numérica"""
+        # Seleccionar características para análisis
+        caracteristicas = ['Monto']
+        matriz_numerica = self.df[caracteristicas].values
+        return matriz_numerica
+    
+    def analisis_pca(self):
+        """Realizar Análisis de Componentes Principales"""
+        # Preparar datos
+        X = self.df[['Monto']]
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+        
+        # Realizar PCA
+        pca = PCA(n_components=1)
+        X_pca = pca.fit_transform(X_scaled)
+        
+        print("Análisis de Componentes Principales (PCA):")
+        print("Varianza explicada:", pca.explained_variance_ratio_)
+        print("Componente principal:", pca.components_)
+        
+        # Visualización de PCA
+        plt.figure(figsize=(10, 6))
+        plt.scatter(range(len(X_pca)), X_pca, c=X_pca, cmap='viridis')
+        plt.title('Proyección de Datos Financieros en Componente Principal')
+        plt.xlabel('Índice de Transacción')
+        plt.ylabel('Valor en Componente Principal')
+        plt.colorbar(label='Magnitud')
+        plt.tight_layout()
+        plt.show()
+        
+        return X_pca
+    
+    def matriz_covarianza(self):
+        """Calcular matriz de covarianza"""
+        # Incluir múltiples características si están disponibles
+        caracteristicas = ['Monto']
+        matriz_cov = np.cov(self.df[caracteristicas].T)
+        
+        print("\nMatriz de Covarianza:")
+        print(matriz_cov)
+        
+        # Visualización de la matriz de covarianza
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(matriz_cov, annot=True, cmap='coolwarm', center=0)
+        plt.title('Matriz de Covarianza de Características Financieras')
+        plt.tight_layout()
+        plt.show()
+        
+        return matriz_cov
+    
+    def clustering_kmeans(self):
+        """Realizar clustering de transacciones"""
+        # Preparar datos para clustering
+        X = self.df[['Monto']]
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+        
+        # Realizar K-means clustering
+        kmeans = KMeans(n_clusters=3, random_state=42)
+        clusters = kmeans.fit_predict(X_scaled)
+        
+        # Añadir información de clusters al DataFrame
+        self.df['Cluster'] = clusters
+        
+        print("\nAnálisis de Clustering:")
+        # Estadísticas por cluster
+        print(self.df.groupby('Cluster').agg({
+            'Monto': ['mean', 'count'],
+            'Tipo': lambda x: x.value_counts().index[0]
+        }))
+        
+        # Visualización de clusters
+        plt.figure(figsize=(10, 6))
+        scatter = plt.scatter(
+            range(len(X_scaled)), 
+            X_scaled, 
+            c=clusters, 
+            cmap='viridis'
+        )
+        plt.title('Clustering de Transacciones Financieras')
+        plt.xlabel('Índice de Transacción')
+        plt.ylabel('Monto Normalizado')
+        plt.colorbar(scatter, label='Cluster')
+        plt.tight_layout()
+        plt.show()
+        
+        return clusters
+    
+    def analisis_vectorial(self):
+        """Análisis vectorial de transacciones"""
+        # Separar ingresos y gastos
+        ingresos = self.df[self.df['Tipo'] == 'Ingreso']['Monto']
+        gastos = self.df[self.df['Tipo'] == 'Gasto']['Monto']
+        
+        # Calcular vectores de tendencia
+        vector_ingresos = np.array(ingresos)
+        vector_gastos = np.array(gastos)
+        
+        # Calcular ángulo entre vectores de ingresos y gastos
+        producto_punto = np.dot(vector_ingresos, vector_gastos)
+        magnitud_ingresos = np.linalg.norm(vector_ingresos)
+        magnitud_gastos = np.linalg.norm(vector_gastos)
+        
+        # Calcular ángulo
+        try:
+            coseno_angulo = producto_punto / (magnitud_ingresos * magnitud_gastos)
+            angulo = np.arccos(np.clip(coseno_angulo, -1.0, 1.0))
+            angulo_grados = np.degrees(angulo)
+            
+            print("\nAnálisis Vectorial:")
+            print(f"Magnitud de Ingresos: {magnitud_ingresos}")
+            print(f"Magnitud de Gastos: {magnitud_gastos}")
+            print(f"Ángulo entre vectores de Ingresos y Gastos: {angulo_grados:.2f} grados")
+        except Exception as e:
+            print("Error en cálculo vectorial:", e)
+
+def main():
+    # Crear DataFrame de ejemplo
+    df = pd.DataFrame({
+        "Descripción": ["Ingreso 1", "Gasto 1", "Ingreso 2", "Gasto 2", "Ingreso 3", "Gasto 3"],
+        "Monto": [1000, 200, 1500, 100, 2000, 300],
+        "Forma de pago": ["transferencia", "efectivo", "depósito", "efectivo", "transferencia", "efectivo"],
+        "Fecha de transacción": [
+            "2024-01-16", "2024-01-16", 
+            "2024-02-17", "2024-02-17", 
+            "2024-03-18", "2024-03-18"
+        ],
+        "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto", "Ingreso", "Gasto"]
+    })
+    
+    # Crear instancia de análisis
+    analisis = AnalisisFinanciero(df)
+    
+    # Ejecutar diversos análisis
+    print("Matriz Original:")
+    print(analisis.preparar_matriz())
+    
+    # PCA
+    analisis.analisis_pca()
+    
+    # Matriz de Covarianza
+    analisis.matriz_covarianza()
+    
+    # Clustering
+    analisis.clustering_kmeans()
+    
+    # Análisis Vectorial
+    analisis.analisis_vectorial()
+
+if __name__ == "__main__":
+    main()
 
 # Cargar el CSV y ejecutar el análisis
 def app():
