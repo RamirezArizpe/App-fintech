@@ -33,10 +33,25 @@ def cargar_csv():
 
 # Función para calcular el promedio de ingresos y gastos
 def calcular_promedio(df):
-    # Filtramos los ingresos y gastos
-    ingresos = df[df['Tipo'] == 'Ingreso']
-    gastos = df[df['Tipo'] == 'Gasto']
+    # Seleccionar si se quiere ver el promedio total o mensual
+    corte = st.radio("Selecciona el corte de tiempo:", ["Promedio Total", "Promedio Mensual"])
     
+    if corte == "Promedio Mensual":
+        # Extraer el mes y año de la fecha
+        df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
+        df['Mes-Año'] = df['Fecha'].dt.to_period('M')
+
+        mes_seleccionado = st.selectbox("Selecciona el mes:", df['Mes-Año'].unique())
+        df_mes = df[df['Mes-Año'] == mes_seleccionado]
+        
+        # Filtramos los ingresos y gastos
+        ingresos = df_mes[df_mes['Tipo'] == 'Ingreso']
+        gastos = df_mes[df_mes['Tipo'] == 'Gasto']
+    else:
+        # Sin filtro, usamos todos los datos
+        ingresos = df[df['Tipo'] == 'Ingreso']
+        gastos = df[df['Tipo'] == 'Gasto']
+
     # Calculamos el promedio de ingresos y gastos
     promedio_ingresos = ingresos['Monto'].mean() if not ingresos.empty else 0
     promedio_gastos = gastos['Monto'].mean() if not gastos.empty else 0
@@ -186,4 +201,3 @@ def app():
 # Ejecutar la aplicación
 if __name__ == "__main__":
     app()
-
