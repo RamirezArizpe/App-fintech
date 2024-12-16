@@ -77,9 +77,10 @@ def clasificar_gastos(df):
         innecesarios = gastos[gastos["Valoración gasto"] <= 3]
         st.write("### Gastos menos necesarios:")
 
-        # Agrupar por tipo y descripción
+        # Mostrar columna de valoración y etiquetas
         if "Tipo" in innecesarios.columns and "Descripción" in innecesarios.columns:
-            agrupados = innecesarios.groupby(["Tipo", "Descripción"]).agg({"Monto": "sum"}).sort_values(by="Monto", ascending=False)
+            agrupados = innecesarios.groupby(["Tipo", "Descripción"]).agg({"Monto": "sum", "Valoración gasto": "mean"}).sort_values(by="Monto", ascending=False)
+            agrupados["Etiqueta Valoración"] = agrupados["Valoración gasto"].map(etiquetas)
             st.write(agrupados)
         else:
             st.write(innecesarios.sort_values(by="Valoración gasto", ascending=True))
