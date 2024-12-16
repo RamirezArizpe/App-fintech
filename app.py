@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import numpy as np
-from scipy import stats
 from datetime import datetime
 import plotly.express as px
 
@@ -86,53 +84,6 @@ def mostrar_analisis(df):
     formas_pago_counts = df['Forma de pago'].value_counts()
     st.write("### Frecuencia de Formas de Pago:")
     st.write(formas_pago_counts)
-    
-    # Análisis de distribución de probabilidad en los gastos
-    mostrar_distribucion_gastos(df)
-
-# Función para mostrar análisis de distribución de probabilidad de los gastos
-def mostrar_distribucion_gastos(df):
-    st.write("### Distribución de Probabilidad de los Gastos")
-
-    # Filtrar solo los gastos
-    gastos_df = df[df['Tipo'] == 'Gasto']
-
-    # Histograma de los gastos
-    fig = plt.figure(figsize=(10, 6))
-    sns.histplot(gastos_df['Monto'], kde=True, color='red', bins=20)
-    plt.title("Distribución de los Gastos")
-    plt.xlabel("Monto de Gasto")
-    plt.ylabel("Frecuencia")
-    st.pyplot(fig)
-
-    # Cálculo de estadísticas de la distribución
-    mean_gasto = gastos_df['Monto'].mean()
-    median_gasto = gastos_df['Monto'].median()
-    std_gasto = gastos_df['Monto'].std()
-    st.write(f"- **Promedio de Gastos**: ${mean_gasto:.2f}")
-    st.write(f"- **Mediana de Gastos**: ${median_gasto:.2f}")
-    st.write(f"- **Desviación Estándar de Gastos**: ${std_gasto:.2f}")
-
-    # Ajuste de una distribución normal
-    mu, std = stats.norm.fit(gastos_df['Monto'])
-
-    # Graficar la distribución ajustada
-    xmin, xmax = gastos_df['Monto'].min(), gastos_df['Monto'].max()
-    x = np.linspace(xmin, xmax, 100)
-    p = stats.norm.pdf(x, mu, std)
-
-    fig = plt.figure(figsize=(10, 6))
-    plt.plot(x, p, 'k', linewidth=2)
-    plt.title("Ajuste de Distribución Normal a los Gastos")
-    plt.xlabel("Monto de Gasto")
-    plt.ylabel("Densidad de Probabilidad")
-    st.pyplot(fig)
-
-    # Percentiles de los gastos
-    percentiles = np.percentile(gastos_df['Monto'], [25, 50, 75])
-    st.write(f"- **Percentil 25**: ${percentiles[0]:.2f}")
-    st.write(f"- **Percentil 50 (Mediana)**: ${percentiles[1]:.2f}")
-    st.write(f"- **Percentil 75**: ${percentiles[2]:.2f}")
 
 # Función para mostrar un ejemplo de archivo CSV
 def mostrar_ejemplo_csv():
@@ -155,6 +106,64 @@ def mostrar_ejemplo_csv():
         file_name="ejemplo_finanzas_personales.csv",
         mime="text/csv"
     )
+
+# Inyectar CSS personalizado para cambiar el color y el grosor del slider y el estilo de los botones
+st.markdown("""
+    <style>
+        /* Cambiar color y grosor del slider */
+        .stSlider .st-bw {
+            width: 100%;
+            height: 12px; /* Hacer el slider más grueso */
+            background-color: #001f3d; /* Azul marino */
+        }
+        .stSlider .st-bw .st-cb {
+            background-color: #FFFFFF; /* Color blanco para el botón del slider */
+        }
+
+        /* Cambiar estilo de los botones a pills moradas */
+        .stButton > button {
+            background-color: #6a1b9a;  /* Morado */
+            color: white;
+            border-radius: 50px; /* Hacerlo "pill" */
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+        }
+        .stButton > button:hover {
+            background-color: #9c4dcc;  /* Morado más claro al pasar el ratón */
+        }
+
+        /* Cambiar el estilo del radio button */
+        .stRadio > div {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+        }
+
+        /* Cambiar el estilo de las opciones del radio button a pills moradas */
+        .stRadio label {
+            background-color: #6a1b9a;
+            color: white;
+            border-radius: 50px;
+            font-size: 16px;
+            padding: 8px 20px;
+        }
+
+        .stRadio input:checked + label {
+            background-color: #9c4dcc; /* Morado más claro cuando se selecciona */
+        }
+
+        /* Estilo de los radio buttons */
+        .stRadio .st-bw {
+            color: white; /* Color de texto blanco en los botones */
+        }
+
+        /* Sin fondo para la pregunta */
+        .stTitle, .stSubheader, .stMarkdown {
+            background: none !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 # Función para registrar un ingreso o un gasto
 def registrar_transaccion(tipo):
@@ -209,7 +218,9 @@ def app():
 
         # Mostrar el formulario según la selección
         registrar_transaccion(transaccion)
+    
     elif opcion == "Carga desde CSV":
+        mostrar_ejemplo_csv()
         cargar_csv()
 
 # Ejecutar la aplicación
