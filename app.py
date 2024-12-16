@@ -11,6 +11,14 @@ st.image("https://raw.githubusercontent.com/RamirezArizpe/App-fintech/main/encab
 # Lista inicial de formas de pago
 formas_pago = ['transferencia', 'depósito', 'efectivo']
 
+# Función para agregar forma de pago si no está en la lista
+def agregar_forma_pago(pago):
+    if pago not in formas_pago:
+        formas_pago.append(pago)
+        st.write(f"Forma de pago '{pago}' añadida a la lista.")
+    else:
+        st.write(f"La forma de pago '{pago}' ya está en la lista.")
+
 # Función para cargar datos desde un archivo CSV
 def cargar_csv():
     archivo = st.file_uploader("Cargar archivo CSV", type=["csv"])
@@ -30,47 +38,42 @@ def cargar_csv():
 def mostrar_analisis(df):
     st.title("Análisis Gráfico e Insights de tus Finanzas")
 
-    # Crear columnas para organizar las gráficas y el texto
-    col1, col2 = st.columns(2)
+    # Crear un contenedor con dos columnas: una para las gráficas y otra para el texto
+    col1, col2 = st.columns([2, 1])
 
-    # Convertir la columna 'Fecha de transacción' a formato de fecha
-    df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
-    
-    # Filtro dinámico para seleccionar entre total o mes
-    filtro_mes = st.selectbox("Selecciona la opción para analizar", ["Total", "Por Mes"])
+    with col1:
+        # Convertir la columna 'Fecha de transacción' a formato de fecha
+        df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
 
-    with col1:  # Gráficas en la columna izquierda
-        # Gráfico de Ingresos vs Gastos
-        if filtro_mes == "Total":
-            # Gráfico de total de ingresos vs total de gastos
-            ingresos_totales = df[df['Tipo'] == 'Ingreso']['Monto'].sum()
-            gastos_totales = df[df['Tipo'] == 'Gasto']['Monto'].sum()
-            fig = plt.figure(figsize=(10, 6))
-            plt.bar(['Ingresos', 'Gastos'], [ingresos_totales, gastos_totales], color=['green', 'red'])
-            plt.title("Ingresos vs Gastos (Total)")
+        # Filtro para seleccionar mes o total
+        opcion_mes = st.selectbox("Selecciona un mes o Total", ["Total"] + list(df['Fecha'].dt.to_period('M').unique().astype(str)))
+
+        if opcion_mes == "Total":
+            # Gráfico de Ingresos vs Gastos total
+            ingresos_total = df[df['Tipo'] == 'Ingreso']['Monto'].sum()
+            gastos_total = df[df['Tipo'] == 'Gasto']['Monto'].sum()
+            labels = ['Ingresos', 'Gastos']
+            values = [ingresos_total, gastos_total]
+            fig = plt.figure(figsize=(6, 4))
+            plt.bar(labels, values, color=['green', 'red'])
+            plt.title("Ingresos vs Gastos Total")
             plt.ylabel("Monto en Pesos")
             st.pyplot(fig)
         else:
-            # Gráfico de ingresos vs gastos por mes
-            df['Mes-Año'] = df['Fecha'].dt.to_period('M')
-            ingresos_mes = df[df['Tipo'] == 'Ingreso'].groupby('Mes-Año')['Monto'].sum()
-            gastos_mes = df[df['Tipo'] == 'Gasto'].groupby('Mes-Año')['Monto'].sum()
-
-            fig = plt.figure(figsize=(10, 6))
-            plt.plot(ingresos_mes.index.astype(str), ingresos_mes, label="Ingresos", marker='o')
-            plt.plot(gastos_mes.index.astype(str), gastos_mes, label="Gastos", marker='o')
-            plt.title("Ingresos y Gastos Mensuales")
-            plt.xlabel("Mes")
+            # Filtro dinámico por mes
+            df_mes = df[df['Fecha'].dt.to_period('M').astype(str) == opcion_mes]
+            ingresos_mes = df_mes[df_mes['Tipo'] == 'Ingreso']['Monto'].sum()
+            gastos_mes = df_mes[df_mes['Tipo'] == 'Gasto']['Monto'].sum()
+            labels = ['Ingresos', 'Gastos']
+            values = [ingresos_mes, gastos_mes]
+            fig = plt.figure(figsize=(6, 4))
+            plt.bar(labels, values, color=['green', 'red'])
+            plt.title(f"Ingresos vs Gastos - {opcion_mes}")
             plt.ylabel("Monto en Pesos")
-            plt.legend()
             st.pyplot(fig)
 
-        # Gráfico interactivo de formas de pago (usando Plotly)
-        fig = px.pie(df, names='Forma de pago', title='Distribución de Formas de Pago')
-        st.plotly_chart(fig)
-
-    with col2:  # Texto en la columna derecha
-        # Insights de los datos
+    with col2:
+        # Mostrar insights de los datos
         st.write("### Insights:")
         
         total_ingresos = df[df['Tipo'] == 'Ingreso']['Monto'].sum()
@@ -111,6 +114,64 @@ def mostrar_ejemplo_csv():
         file_name="ejemplo_finanzas_personales.csv",
         mime="text/csv"
     )
+
+# Inyectar CSS personalizado para cambiar el color y el grosor del slider y el estilo de los botones
+st.markdown("""
+    <style>
+        /* Cambiar color y grosor del slider */
+        .stSlider .st-bw {
+            width: 100%;
+            height: 12px; /* Hacer el slider más grueso */
+            background-color: #001f3d; /* Azul marino */
+        }
+        .stSlider .st-bw .st-cb {
+            background-color: #FFFFFF; /* Color blanco para el botón del slider */
+        }
+
+        /* Cambiar estilo de los botones a pills moradas */
+        .stButton > button {
+            background-color: #6a1b9a;  /* Morado */
+            color: white;
+            border-radius: 50px; /* Hacerlo "pill" */
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+        }
+        .stButton > button:hover {
+            background-color: #9c4dcc;  /* Morado más claro al pasar el ratón */
+        }
+
+        /* Cambiar el estilo del radio button */
+        .stRadio > div {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+        }
+
+        /* Cambiar el estilo de las opciones del radio button a pills moradas */
+        .stRadio label {
+            background-color: #6a1b9a;
+            color: white;
+            border-radius: 50px;
+            font-size: 16px;
+            padding: 8px 20px;
+        }
+
+        .stRadio input:checked + label {
+            background-color: #9c4dcc; /* Morado más claro cuando se selecciona */
+        }
+
+        /* Estilo de los radio buttons */
+        .stRadio .st-bw {
+            color: white; /* Color de texto blanco en los botones */
+        }
+
+        /* Sin fondo para la pregunta */
+        .stTitle, .stSubheader, .stMarkdown {
+            background: none !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 # Función para registrar un ingreso o un gasto
 def registrar_transaccion(tipo):
