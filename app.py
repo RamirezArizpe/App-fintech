@@ -81,6 +81,19 @@ st.markdown("""
             flex-direction: row;
             justify-content: space-around;
         }
+
+        /* Cambiar el estilo de las opciones del radio button a pills moradas */
+        .stRadio label {
+            background-color: #6a1b9a;
+            color: white;
+            border-radius: 50px;
+            font-size: 16px;
+            padding: 8px 20px;
+        }
+
+        .stRadio input:checked + label {
+            background-color: #9c4dcc; /* Morado más claro cuando se selecciona */
+        }
     </style>
 """, unsafe_allow_html=True)
 
