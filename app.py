@@ -46,53 +46,51 @@ def mostrar_ejemplo_csv():
         mime="text/csv"
     )
 
-# Función para agregar un ingreso
-def agregar_ingreso():
-    st.title("Agregar Ingreso")
+# Función para registrar un ingreso o un gasto
+def registrar_transaccion(tipo):
+    st.title(f"Registrar {tipo}")
 
-    # Campos para ingresar datos
-    descripcion = st.text_input("Descripción del ingreso")
+    # Campos comunes para ingreso y gasto
+    descripcion = st.text_input(f"Descripción del {tipo.lower()}")
     monto = st.number_input("Monto en pesos mexicanos", min_value=0.0)
     pago = st.selectbox("Forma de pago", formas_pago)
     fecha = st.date_input("Fecha de transacción", datetime.today())
 
-    if st.button("Registrar Ingreso"):
+    # Si es un gasto, añadir valoración de necesidad
+    if tipo == "Gasto":
+        valoracion = st.slider("¿Qué tan necesario fue este gasto?", 1, 6)
+
+    if st.button(f"Registrar {tipo}"):
         # Convertir la fecha en formato adecuado
         fecha_str = fecha.strftime('%Y-%m-%d')
-        st.write(f"Ingreso registrado: Descripción: {descripcion}, Monto: {monto}, Forma de pago: {pago}, Fecha: {fecha_str}")
 
-# Función para agregar un gasto
-def agregar_gasto():
-    st.title("Agregar Gasto")
-
-    # Campos para ingresar datos
-    descripcion = st.text_input("Descripción del gasto")
-    monto = st.number_input("Monto en pesos mexicanos", min_value=0.0)
-    pago = st.selectbox("Forma de pago", formas_pago)
-    fecha = st.date_input("Fecha de transacción", datetime.today())
-    valoracion = st.slider("¿Qué tan necesario fue este gasto?", 1, 6)
-
-    if st.button("Registrar Gasto"):
-        # Convertir la fecha en formato adecuado
-        fecha_str = fecha.strftime('%Y-%m-%d')
-        st.write(f"Gasto registrado: Descripción: {descripcion}, Monto: {monto}, Forma de pago: {pago}, Fecha: {fecha_str}, Valoración: {valoracion}")
+        if tipo == "Ingreso":
+            st.write(f"Ingreso registrado: Descripción: {descripcion}, Monto: {monto}, Forma de pago: {pago}, Fecha: {fecha_str}")
+        elif tipo == "Gasto":
+            st.write(f"Gasto registrado: Descripción: {descripcion}, Monto: {monto}, Forma de pago: {pago}, Fecha: {fecha_str}, Valoración: {valoracion}")
 
 # Función principal que permite elegir entre ingresar manualmente o cargar CSV
 def app():
     # Añadir la pregunta antes de las opciones
     st.title("¿Qué deseas registrar?")
     
-    # Menú lateral con las opciones de registro
-    opcion = st.radio("Selecciona una opción", ["Ingreso", "Gasto", "Cargar Datos desde CSV", "Ver Ejemplo CSV"])
+    # Botón para elegir entre "Ingreso Manual" o "Carga desde CSV"
+    opcion = st.radio("Selecciona cómo deseas registrar tus datos", ["Ingreso Manual", "Carga desde CSV"])
 
-    if opcion == "Ingreso":
-        agregar_ingreso()
-    elif opcion == "Gasto":
-        agregar_gasto()
-    elif opcion == "Cargar Datos desde CSV":
-        cargar_csv()
-    elif opcion == "Ver Ejemplo CSV":
+    if opcion == "Ingreso Manual":
+        # Subopciones para elegir entre Ingreso o Gasto
+        transaccion = st.radio("¿Qué deseas registrar?", ["Ingreso", "Gasto"])
+
+        # Mostrar el formulario según la selección
+        registrar_transaccion(transaccion)
+    
+    elif opcion == "Carga desde CSV":
         mostrar_ejemplo_csv()
+        cargar_csv()
+
+# Ejecutar la aplicación
+if __name__ == "__main__":
+    app()
 
 # Ejecutar la aplicación
 if __name__ == "__main__":
