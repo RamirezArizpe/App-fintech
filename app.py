@@ -52,27 +52,46 @@ def mostrar_balance():
 # Interfaz de usuario
 st.title("App de Finanzas Personales")
 
-# Selección de tipo de movimiento
-tipo = st.selectbox("¿Qué desea registrar?", ["Ingreso", "Gasto"])
+# Selección del tipo de entrada: manual o desde CSV
+opcion_entrada = st.radio("¿Cómo desea registrar los datos?", ["Ingreso manual", "Cargar desde archivo CSV"], horizontal=True)
 
-# Entradas según el tipo de movimiento
-descripcion = st.text_input("Descripción")
-monto = st.number_input("Monto", min_value=0.01, format="%.2f")
-forma_pago = st.selectbox("Forma de pago", ["Efectivo", "Tarjeta de crédito", "Tarjeta de débito", "Transferencia", "Otros"])
+if opcion_entrada == "Ingreso manual":
+    # Selección de tipo de movimiento
+    tipo = st.selectbox("¿Qué desea registrar?", ["Ingreso", "Gasto"])
 
-if tipo == "Gasto":
-    valoracion = st.slider("Valoración del gasto (1-6)", 1, 6, 3)
-else:
-    valoracion = None  # Los ingresos no tienen valoración
+    # Entradas según el tipo de movimiento
+    descripcion = st.text_input("Descripción")
+    monto = st.number_input("Monto", min_value=0.01, format="%.2f")
+    forma_pago = st.selectbox("Forma de pago", ["Efectivo", "Tarjeta de crédito", "Tarjeta de débito", "Transferencia", "Otros"])
 
-fecha = st.date_input("Fecha de registro")
-
-# Botón para registrar
-if st.button(f"Registrar {tipo.lower()}"):
-    if descripcion and monto > 0 and forma_pago:
-        registrar_movimiento(tipo.lower(), descripcion, monto, forma_pago, valoracion, fecha)
+    if tipo == "Gasto":
+        valoracion = st.slider("Valoración del gasto (1-6)", 1, 6, 3)
     else:
-        st.error("Por favor, complete todos los campos.")
+        valoracion = None  # Los ingresos no tienen valoración
+
+    fecha = st.date_input("Fecha de registro")
+
+    # Botón para registrar
+    if st.button(f"Registrar {tipo.lower()}"):
+        if descripcion and monto > 0 and forma_pago:
+            registrar_movimiento(tipo.lower(), descripcion, monto, forma_pago, valoracion, fecha)
+        else:
+            st.error("Por favor, complete todos los campos.")
+elif opcion_entrada == "Cargar desde archivo CSV":
+    # Cargar archivo CSV
+    archivo = st.file_uploader("Suba un archivo CSV", type="csv")
+
+    if archivo:
+        try:
+            df_cargado = pd.read_csv(archivo)
+            df_cargado['Fecha de registro'] = pd.to_datetime(df_cargado['Fecha de registro'])
+            st.write("Datos cargados desde el archivo:")
+            st.dataframe(df_cargado)
+            # Registrar datos cargados en el DataFrame principal
+            for _, row in df_cargado.iterrows():
+                registrar_movimiento(row['Tipo'], row['Descripción'], row['Monto'], row['Forma de pago'], row.get('Valoración', None), row['Fecha de registro'])
+        except Exception as e:
+            st.error(f"Hubo un error al cargar el archivo: {e}")
 
 # Mostrar balance mensual
 if st.checkbox("Ver balance mensual"):
