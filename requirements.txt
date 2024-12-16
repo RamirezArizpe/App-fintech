@@ -5,5 +5,5 @@ pandas
 plotly
 scipy
 numpy
-math
 IPython.display
+math
