@@ -22,6 +22,10 @@ def cargar_csv():
     if archivo:
         try:
             df = pd.read_csv(archivo)
+            # Verificar que las columnas requeridas estén en el CSV
+            if "Tipo" not in df.columns or "Monto" not in df.columns:
+                st.error("El archivo CSV no tiene las columnas necesarias (Tipo, Monto).")
+                return
             st.write("Datos cargados exitosamente:")
             st.write(df)
         except Exception as e:
@@ -45,7 +49,7 @@ def mostrar_ejemplo_csv():
     st.download_button(
         label="Descargar archivo ejemplo",
         data=ejemplo.to_csv(index=False),
-        file_name="ejemplo_finanzas_personales.csv",
+        file_name=f"ejemplo_finanzas_{datetime.today().strftime('%Y%m%d')}.csv",
         mime="text/csv"
     )
 
@@ -72,8 +76,25 @@ def registrar_transaccion(tipo):
         elif tipo == "Gasto":
             st.write(f"Gasto registrado: Descripción: {descripcion}, Monto: {monto}, Forma de pago: {pago}, Fecha: {fecha_str}, Valoración: {valoracion}")
 
+# Función principal que permite elegir entre ingresar manualmente o cargar CSV
+def app():
+    # Añadir la pregunta antes de las opciones
+    st.title("¿Qué deseas registrar?")
+    
+    # Botón para elegir entre "Ingreso Manual" o "Carga desde CSV"
+    opcion = st.radio("Selecciona cómo deseas registrar tus datos", ["Ingreso Manual", "Carga desde CSV"])
+
+    if opcion == "Ingreso Manual":
+        # Subopciones para elegir entre Ingreso o Gasto
+        transaccion = st.radio("¿Qué deseas registrar?", ["Ingreso", "Gasto"])
+
+        # Mostrar el formulario según la selección
+        registrar_transaccion(transaccion)
+    
+    elif opcion == "Carga desde CSV":
+        mostrar_ejemplo_csv()
+        cargar_csv()
 
 # Ejecutar la aplicación
 if __name__ == "__main__":
     app()
-
