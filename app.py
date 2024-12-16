@@ -46,13 +46,6 @@ def mostrar_analisis(df):
     sns.countplot(data=df, x='Tipo', palette="Set2")
     plt.title("Distribución de Ingresos vs Gastos")
     st.pyplot(fig)
-    
-    # Apartado explicativo
-    st.markdown("""
-        ### ¿Qué significa este gráfico?
-        Este gráfico muestra la distribución de los ingresos y los gastos en tus registros. 
-        Cada barra representa la cantidad de transacciones de tipo 'Ingreso' o 'Gasto', lo que te permite ver cuántas veces has registrado cada tipo de transacción.
-    """)
 
     # Gráfico de ingresos y gastos por mes
     df['Mes-Año'] = df['Fecha'].dt.to_period('M')
@@ -67,24 +60,10 @@ def mostrar_analisis(df):
     plt.ylabel("Monto en Pesos")
     plt.legend()
     st.pyplot(fig)
-
-    # Apartado explicativo
-    st.markdown("""
-        ### ¿Qué significa este gráfico?
-        Este gráfico muestra la evolución mensual de los ingresos y los gastos. 
-        Permite comparar cómo varían tus ingresos y gastos a lo largo del tiempo, ayudándote a identificar tendencias y comportamientos financieros.
-    """)
-
+    
     # Gráfico interactivo de formas de pago (usando Plotly)
     fig = px.pie(df, names='Forma de pago', title='Distribución de Formas de Pago')
     st.plotly_chart(fig)
-
-    # Apartado explicativo
-    st.markdown("""
-        ### ¿Qué significa este gráfico?
-        Este gráfico circular muestra la distribución de las formas de pago utilizadas en tus transacciones. 
-        Cada segmento representa el porcentaje de uso de cada forma de pago (transferencia, depósito, efectivo), dándote una visión general de cómo prefieres realizar tus pagos.
-    """)
 
     # Insights de los datos
     st.write("### Insights:")
@@ -105,73 +84,6 @@ def mostrar_analisis(df):
     formas_pago_counts = df['Forma de pago'].value_counts()
     st.write("### Frecuencia de Formas de Pago:")
     st.write(formas_pago_counts)
-
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import math
-import streamlit as st
-
-# Configuración de estilo para gráficos
-sns.set(style="whitegrid")
-
-# Datos simulados (puedes cargar datos reales desde un CSV)
-data = {
-    'forma_pago': ['Efectivo', 'Tarjeta', 'Transferencia', 'Crédito', 'Otros'],
-    'cantidad': [150, 300, 450, 75, 25],
-}
-
-# Convertir a DataFrame
-df = pd.DataFrame(data)
-
-# Total de transacciones
-total_transacciones = df['cantidad'].sum()
-
-# Calcular las proporciones
-df['proporcion'] = df['cantidad'] / total_transacciones
-
-# Intervalo de confianza para cada forma de pago
-Z = 1.96  # Valor crítico para 95% de confianza
-
-def calcular_ic(p, n):
-    error_estandar = math.sqrt((p * (1 - p)) / n)
-    intervalo_confianza = Z * error_estandar
-    return p - intervalo_confianza, p + intervalo_confianza
-
-# Aplicar cálculo de IC a cada forma de pago
-df['IC_inferior'], df['IC_superior'] = zip(*df['proporcion'].apply(lambda p: calcular_ic(p, total_transacciones)))
-
-# Mostrar datos con intervalos de confianza
-st.title('🔮 Tus Formas de Pago Más Populares')
-st.write('Aquí están las proporciones de uso y los intervalos de confianza para cada forma de pago en tu historial.')
-
-st.write(df[['forma_pago', 'proporcion', 'IC_inferior', 'IC_superior']])
-
-# Graficar la proporción de cada forma de pago
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.barplot(x='proporcion', y='forma_pago', data=df, palette="viridis", ax=ax)
-
-# Añadir intervalos de confianza como barras
-for i, row in df.iterrows():
-    ax.plot([row['IC_inferior'], row['IC_superior']], [i, i], color='black', lw=2)
-
-ax.set_title('Proporción de Formas de Pago con Intervalos de Confianza al 95%', fontsize=14, weight='bold')
-ax.set_xlabel('Proporción de Uso (%)')
-ax.set_ylabel('Forma de Pago')
-
-# Personalización estética
-plt.grid(False)
-st.pyplot(fig)
-
-# Mensajes impactantes (basados en insights)
-mensaje = f"""
-### 🔮 Insights Impactantes:
-- **{df['forma_pago'][df['proporcion'].idxmax()]}** es la forma de pago más utilizada, con un {df['proporcion'].max()*100:.2f}% de las transacciones.
-- ¡Te sorprendería saber que más del {df['IC_superior'].max()*100:.2f}% de tus transacciones futuras serán probablemente pagadas con la forma más popular!
-- **La forma de pago menos utilizada** es **{df['forma_pago'][df['proporcion'].idxmin()]}**, con solo un {df['proporcion'].min()*100:.2f}% de las transacciones. ¡Podrías explorar más opciones!
-"""
-st.markdown(mensaje, unsafe_allow_html=True)
 
 # Función para mostrar un ejemplo de archivo CSV
 def mostrar_ejemplo_csv():
