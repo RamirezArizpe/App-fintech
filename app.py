@@ -33,8 +33,7 @@ opcion = st.radio("¿Cómo deseas ingresar los datos?", ("Manual", "Desde archiv
 # Si el usuario selecciona "Desde archivo CSV", cargamos el CSV
 if opcion == "Desde archivo CSV":
     df_ingresos, df_gastos = cargar_csv()
-import pandas as pd
-import streamlit as st
+
 import io
 
 # Crear un CSV de ejemplo para ingresos y gastos
