@@ -123,6 +123,35 @@ def mostrar_analisis(df):
         st.write("### Frecuencia de Formas de Pago:")
         st.write(formas_pago_counts)
 
+# Función para mostrar análisis de necesidad de gastos y potencial de ahorro
+def analizar_gastos(df):
+    st.title("Análisis de Necesidad de Gastos y Potencial de Ahorro")
+
+    # Filtrar los gastos con valoraciones de 1 a 3 (innecesarios)
+    gastos_innecesarios = df[(df['Tipo'] == 'Gasto') & (df['Valoración'] <= 3)]
+    
+    # Calcular el total de los gastos innecesarios
+    total_gastos_innecesarios = gastos_innecesarios['Monto'].sum()
+    
+    # Calcular el total de todos los gastos
+    total_gastos = df[df['Tipo'] == 'Gasto']['Monto'].sum()
+
+    # Mostrar los resultados
+    st.write(f"- **Total de Gastos**: ${total_gastos:.2f}")
+    st.write(f"- **Total de Gastos Innecesarios**: ${total_gastos_innecesarios:.2f}")
+    st.write(f"- **Potencial de Ahorro**: ${total_gastos_innecesarios:.2f}")
+    
+    # Porcentaje de ahorro potencial
+    if total_gastos > 0:
+        porcentaje_ahorro = (total_gastos_innecesarios / total_gastos) * 100
+    else:
+        porcentaje_ahorro = 0
+    
+    st.write(f"- **Porcentaje del Ahorro Potencial sobre el Total de Gastos**: {porcentaje_ahorro:.2f}%")
+
+    # Alerta si el ahorro potencial es alto
+    if porcentaje_ahorro > 20:
+        st.warning("🚨 Alerta: Más del 20% de tus gastos podrían ser innecesarios. Revisa tus hábitos de gasto.")
 
 # Cargar el CSV y ejecutar el análisis
 def app():
