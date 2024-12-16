@@ -49,7 +49,7 @@ def mostrar_ejemplo_csv():
         mime="text/csv"
     )
 
-# Inyectar CSS personalizado para cambiar el color y el grosor del slider
+# Inyectar CSS personalizado para cambiar el color y el grosor del slider y el estilo de los botones
 st.markdown("""
     <style>
         /* Cambiar color y grosor del slider */
@@ -60,6 +60,26 @@ st.markdown("""
         }
         .stSlider .st-bw .st-cb {
             background-color: #FFFFFF; /* Color blanco para el botón del slider */
+        }
+
+        /* Cambiar estilo de los botones a pills moradas */
+        .stButton > button {
+            background-color: #6a1b9a;  /* Morado */
+            color: white;
+            border-radius: 50px; /* Hacerlo "pill" */
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+        }
+        .stButton > button:hover {
+            background-color: #9c4dcc;  /* Morado más claro al pasar el ratón */
+        }
+
+        /* Cambiar el estilo del radio button */
+        .stRadio > div {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
         }
     </style>
 """, unsafe_allow_html=True)
