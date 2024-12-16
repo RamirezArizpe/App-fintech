@@ -94,6 +94,12 @@ st.markdown("""
         .stRadio input:checked + label {
             background-color: #9c4dcc; /* Morado más claro cuando se selecciona */
         }
+
+        /* Estilo de los radio buttons */
+        .stRadio .st-bw {
+            color: white; /* Color de texto blanco en los botones */
+        }
+
     </style>
 """, unsafe_allow_html=True)
 
