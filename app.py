@@ -73,8 +73,6 @@ def registrar_gasto_con_slider():
             df_gastos.loc[len(df_gastos)] = nuevo_gasto
             st.success(f"Gasto registrado: {descripcion}, {monto}, {forma_pago}, {valoracion}, {fecha_mov}")
 
-# Si los DataFrames no están vacíos, puedes mostrar las gráficas
-if not df_ingresos.empty and not df_gastos.empty:
     # Graficar DataFrame de ingresos vs DataFrame de gastos
     plt.figure(figsize=(10, 6))
     plt.plot(df_ingresos['Fecha de registro'], df_ingresos['Monto'], marker='o', label='Ingresos')
