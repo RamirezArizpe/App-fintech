@@ -6,4 +6,4 @@ plotly
 scipy
 numpy
 math
-IPython
+IPython.display
