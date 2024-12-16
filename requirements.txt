@@ -3,5 +3,6 @@ matplotlib
 seaborn
 plotly
 io
+pandas
 
 
