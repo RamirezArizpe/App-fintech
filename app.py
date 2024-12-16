@@ -110,3 +110,63 @@ df = pd.DataFrame(data)
 fig = px.bar(df, x='Categoría', y='Valor', title="Gráfico de Barras Interactivo")
 st.plotly_chart(fig)
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Convertir las fechas a datetime
+df_finanzas['Fecha de registro'] = pd.to_datetime(df_finanzas['Fecha de registro'])
+
+# Filtrar los ingresos y gastos
+df_ingresos = df_finanzas[df_finanzas['Tipo'] == 'ingreso']
+df_gastos = df_finanzas[df_finanzas['Tipo'] == 'gasto']
+
+# Graficar Ingresos vs Gastos
+st.subheader("Gráfico de Ingresos vs Gastos")
+col1, col2 = st.columns(2)
+
+with col1:
+    # Graficar los ingresos
+    plt.figure(figsize=(10, 6))
+    plt.plot(df_ingresos['Fecha de registro'], df_ingresos['Monto'], marker='o', label='Ingresos', color='green')
+    plt.xlabel('Fecha')
+    plt.ylabel('Monto')
+    plt.title('Ingresos por Fecha')
+    plt.legend()
+    plt.grid(True)
+    st.pyplot(plt)
+
+with col2:
+    # Graficar los gastos
+    plt.figure(figsize=(10, 6))
+    plt.plot(df_gastos['Fecha de registro'], df_gastos['Monto'], marker='o', label='Gastos', color='red')
+    plt.xlabel('Fecha')
+    plt.ylabel('Monto')
+    plt.title('Gastos por Fecha')
+    plt.legend()
+    plt.grid(True)
+    st.pyplot(plt)
+
+# Graficar los gastos por categoría (Descripción)
+st.subheader("Gráfico de Gastos por Categoría")
+plt.figure(figsize=(10, 6))
+gastos_categoria = df_gastos.groupby('Descripción')['Monto'].sum().sort_values(ascending=False)
+sns.barplot(x=gastos_categoria.index, y=gastos_categoria.values, palette='Reds')
+plt.title('Gastos por Categoría')
+plt.xlabel('Categoría')
+plt.ylabel('Monto')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()  # Mejor ajuste de los elementos
+st.pyplot(plt)
+
+# Graficar los ingresos por categoría (Descripción)
+st.subheader("Gráfico de Ingresos por Categoría")
+plt.figure(figsize=(10, 6))
+ingresos_categoria = df_ingresos.groupby('Descripción')['Monto'].sum().sort_values(ascending=False)
+sns.barplot(x=ingresos_categoria.index, y=ingresos_categoria.values, palette='Greens')
+plt.title('Ingresos por Categoría')
+plt.xlabel('Categoría')
+plt.ylabel('Monto')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()  # Mejor ajuste de los elementos
+st.pyplot(plt)
+
