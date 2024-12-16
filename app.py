@@ -93,17 +93,27 @@ def mostrar_analisis(df):
         st.write("### Frecuencia de Formas de Pago:")
         st.write(formas_pago_counts)
 
-# Función para mostrar un ejemplo de archivo CSV
-def mostrar_ejemplo_csv():
-    # Ejemplo con columna "Tipo" para indicar si es un Ingreso o Gasto
-    ejemplo = pd.DataFrame({
+        # Estadísticas de las formas de pago
+        formas_pago_counts = df_filtrado['Forma de pago'].value_counts()
+        st.write("### Frecuencia de Formas de Pago:")
+        st.write(formas_pago_counts)
+
+# Cargar el CSV y ejecutar el análisis
+def app():
+    # Ejemplo de dataframe para pruebas
+    df = pd.DataFrame({
         "Descripción": ["Ingreso 1", "Gasto 1", "Ingreso 2", "Gasto 2"],
         "Monto": [1000, 200, 1500, 100],
         "Forma de pago": ["transferencia", "efectivo", "depósito", "efectivo"],
         "Fecha de transacción": ["2024-12-16", "2024-12-16", "2024-12-17", "2024-12-17"],
-        "Valoración gasto": [None, 3, None, 4],  # Valoración sólo para gastos
         "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto"]  # Columna Tipo para diferenciar
     })
+    
+    # Convertir la columna 'Fecha de transacción' a formato de fecha
+    df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
+
+    # Llamar a la función para mostrar análisis
+    mostrar_analisis(df)
     
     st.write("Ejemplo de formato CSV para carga correcta: (no escribas acentos ni caractéres especiales)")
     st.write(ejemplo)
