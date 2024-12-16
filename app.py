@@ -27,6 +27,7 @@ def cargar_csv():
             
             # Mostrar el promedio de ingresos y gastos
             calcular_promedio(df)
+            analizar_por_descripcion(df)
             
         except Exception as e:
             st.error(f"Error al cargar el archivo: {e}")
@@ -59,6 +60,32 @@ def calcular_promedio(df):
     # Mostrar los resultados
     st.write(f"Promedio de Ingresos: ${promedio_ingresos:.2f}")
     st.write(f"Promedio de Gastos: ${promedio_gastos:.2f}")
+
+# Función para realizar análisis por descripción
+def analizar_por_descripcion(df):
+    descripcion_buscar = st.text_input("Buscar por descripción (opcional)")
+
+    if descripcion_buscar:
+        # Filtrar las transacciones que contienen la descripción ingresada
+        df_filtrado = df[df['Descripción'].str.contains(descripcion_buscar, case=False, na=False)]
+        
+        if not df_filtrado.empty:
+            st.write(f"Análisis para las transacciones que contienen '{descripcion_buscar}':")
+            
+            # Calcular los promedios de ingresos y gastos para esas descripciones
+            ingresos_filtrados = df_filtrado[df_filtrado['Tipo'] == 'Ingreso']
+            gastos_filtrados = df_filtrado[df_filtrado['Tipo'] == 'Gasto']
+            
+            promedio_ingresos = ingresos_filtrados['Monto'].mean() if not ingresos_filtrados.empty else 0
+            promedio_gastos = gastos_filtrados['Monto'].mean() if not gastos_filtrados.empty else 0
+            
+            st.write(f"Promedio de Ingresos para '{descripcion_buscar}': ${promedio_ingresos:.2f}")
+            st.write(f"Promedio de Gastos para '{descripcion_buscar}': ${promedio_gastos:.2f}")
+            
+            # Mostrar las transacciones filtradas
+            st.write(df_filtrado)
+        else:
+            st.write(f"No se encontraron transacciones que contengan '{descripcion_buscar}'.")
 
 # Función para mostrar un ejemplo de archivo CSV
 def mostrar_ejemplo_csv():
