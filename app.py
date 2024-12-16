@@ -240,6 +240,17 @@ def app():
     elif opcion == "Carga desde CSV":
         mostrar_ejemplo_csv()
         cargar_csv()
+def mostrar_ejemplo_csv():
+    # Ejemplo de cómo debería verse el CSV
+    ejemplo = pd.DataFrame({
+        "Descripción": ["Ingreso 1", "Gasto 1", "Ingreso 2", "Gasto 2"],
+        "Monto": [1000, 200, 1500, 100],
+        "Forma de pago": ["transferencia", "efectivo", "depósito", "efectivo"],
+        "Fecha de transacción": ["2024-12-16", "2024-12-16", "2024-12-17", "2024-12-17"],
+        "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto"]
+    })
+    st.write("Ejemplo de formato CSV para carga correcta: (no escribas acentos ni caracteres especiales)")
+    st.write(ejemplo)
 
 # Ejecutar la aplicación
 if __name__ == "__main__":
