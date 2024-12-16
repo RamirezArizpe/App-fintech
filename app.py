@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 
+theme {black}
+
 # Configuración inicial de la aplicación
 st.title("Formulario de Datos y Análisis")
 st.write("Introduce tus datos manualmente o carga un archivo CSV para comenzar.")
