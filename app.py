@@ -89,23 +89,26 @@ if opcion == "CSV":
     else:
         st.error("No se pudo cargar el CSV correctamente.")
 elif opcion == "Manual":
+    # Indent the function definition here
+    def registrar_ingreso_manual():
+        descripcion = st.text_input("Descripción del ingreso:")
+        monto = st.number_input("Monto del ingreso:", min_value=0.0)
+        forma_pago = st.selectbox("Forma de pago:", ["Efectivo", "Tarjeta", "Transferencia"])
+        fecha_mov = st.date_input("Fecha de registro")
 
-# Función para registrar un ingreso manualmente
-def registrar_ingreso_manual():
-    descripcion = st.text_input("Descripción del ingreso:")
-    monto = st.number_input("Monto del ingreso:", min_value=0.0)
-    forma_pago = st.selectbox("Forma de pago:", ["Efectivo", "Tarjeta", "Transferencia"])
-    fecha_mov = st.date_input("Fecha de registro")
+        if st.button("Registrar Ingreso"):
+            nuevo_ingreso = {
+                'Descripción': descripcion,
+                'Monto': monto,
+                'Fecha de registro': str(fecha_mov),
+                'Forma de pago': forma_pago
+            }
+            df_ingresos.loc[len(df_ingresos)] = nuevo_ingreso
+            st.success(f"Ingreso registrado: {descripcion}, {monto}, {forma_pago}, {fecha_mov}")
 
-    if st.button("Registrar Ingreso"):
-        nuevo_ingreso = {
-            'Descripción': descripcion,
-            'Monto': monto,
-            'Fecha de registro': str(fecha_mov),
-            'Forma de pago': forma_pago
-        }
-        df_ingresos.loc[len(df_ingresos)] = nuevo_ingreso
-        st.success(f"Ingreso registrado: {descripcion}, {monto}, {forma_pago}, {fecha_mov}")
+    # Now call the function inside the elif block
+    registrar_ingreso_manual()
+    registrar_gasto_con_slider()
 
 def registrar_gasto_con_slider():
     descripcion = st.text_input("Descripción del gasto:", key="descripcion_gasto")
