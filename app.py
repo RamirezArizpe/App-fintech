@@ -11,14 +11,6 @@ st.image("https://raw.githubusercontent.com/RamirezArizpe/App-fintech/main/encab
 # Lista inicial de formas de pago
 formas_pago = ['transferencia', 'depósito', 'efectivo']
 
-# Función para mostrar glosario de términos financieros
-def mostrar_glosario():
-    st.write("### Glosario de términos financieros")
-    st.write("- **Ingreso**: Dinero que recibes regularmente o de una sola vez.")
-    st.write("- **Gasto**: Dinero que se destina a pagar por bienes o servicios.")
-    st.write("- **Saldo**: La cantidad de dinero que tienes disponible después de registrar tus ingresos y gastos.")
-    st.write("- **Forma de pago**: Método utilizado para realizar el pago (ej. transferencia, efectivo).")
-
 # Función para agregar forma de pago si no está en la lista
 def agregar_forma_pago(pago):
     if pago not in formas_pago:
@@ -45,9 +37,6 @@ def cargar_csv():
 # Función para mostrar gráficos y análisis visual
 def mostrar_analisis(df):
     st.title("Análisis Gráfico e Insights de tus Finanzas")
-    
-    # Incluir el glosario para los nuevos usuarios
-    mostrar_glosario()
 
     # Convertir la columna 'Fecha de transacción' a formato de fecha
     df['Fecha'] = pd.to_datetime(df['Fecha de transacción'])
@@ -96,14 +85,6 @@ def mostrar_analisis(df):
     st.write("### Frecuencia de Formas de Pago:")
     st.write(formas_pago_counts)
 
-    # Sugerencias para mejorar la situación financiera
-    if balance < 0:
-        st.write("⚠️ **¡Atención!** Tu balance es negativo. Considera reducir tus gastos o aumentar tus ingresos.")
-    elif balance < 1000:
-        st.write("💡 Podrías mejorar tu balance incrementando tus ahorros o buscando maneras de reducir gastos innecesarios.")
-    else:
-        st.write("🎉 ¡Buen trabajo! Tienes un balance positivo. Sigue ahorrando y controlando tus gastos.")
-
 # Función para mostrar un ejemplo de archivo CSV
 def mostrar_ejemplo_csv():
     # Ejemplo con columna "Tipo" para indicar si es un Ingreso o Gasto
@@ -126,6 +107,64 @@ def mostrar_ejemplo_csv():
         mime="text/csv"
     )
 
+# Inyectar CSS personalizado para cambiar el color y el grosor del slider y el estilo de los botones
+st.markdown("""
+    <style>
+        /* Cambiar color y grosor del slider */
+        .stSlider .st-bw {
+            width: 100%;
+            height: 12px; /* Hacer el slider más grueso */
+            background-color: #001f3d; /* Azul marino */
+        }
+        .stSlider .st-bw .st-cb {
+            background-color: #FFFFFF; /* Color blanco para el botón del slider */
+        }
+
+        /* Cambiar estilo de los botones a pills moradas */
+        .stButton > button {
+            background-color: #6a1b9a;  /* Morado */
+            color: white;
+            border-radius: 50px; /* Hacerlo "pill" */
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+        }
+        .stButton > button:hover {
+            background-color: #9c4dcc;  /* Morado más claro al pasar el ratón */
+        }
+
+        /* Cambiar el estilo del radio button */
+        .stRadio > div {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+        }
+
+        /* Cambiar el estilo de las opciones del radio button a pills moradas */
+        .stRadio label {
+            background-color: #6a1b9a;
+            color: white;
+            border-radius: 50px;
+            font-size: 16px;
+            padding: 8px 20px;
+        }
+
+        .stRadio input:checked + label {
+            background-color: #9c4dcc; /* Morado más claro cuando se selecciona */
+        }
+
+        /* Estilo de los radio buttons */
+        .stRadio .st-bw {
+            color: white; /* Color de texto blanco en los botones */
+        }
+
+        /* Sin fondo para la pregunta */
+        .stTitle, .stSubheader, .stMarkdown {
+            background: none !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # Función para registrar un ingreso o un gasto
 def registrar_transaccion(tipo):
     st.title(f"Registrar {tipo}")
@@ -144,7 +183,17 @@ def registrar_transaccion(tipo):
             max_value=6, 
             step=1
         )
-        st.markdown("""<p style="font-size: 14px; color: #333; font-style: italic;">1 = Totalmente innecesario, 6 = Totalmente necesario</p>""", unsafe_allow_html=True)
+        st.markdown("""
+            <style>
+                /* Estilo para el texto explicativo */
+                .stSlider + .stText {
+                    font-size: 14px;
+                    color: #333;
+                    font-style: italic;
+                }
+            </style>
+            <p style="font-size: 14px; color: #333; font-style: italic;">1 = Totalmente innecesario, 6 = Totalmente necesario</p>
+        """, unsafe_allow_html=True)
 
     if st.button(f"Registrar {tipo}"):
         # Convertir la fecha en formato adecuado
