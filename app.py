@@ -1,32 +1,20 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 from datetime import datetime
 
-# Función para cargar datos manualmente
-def cargar_manual():
-    st.subheader("Ingreso manual de datos")
+# Agregar el logo al encabezado
+st.image("https://raw.githubusercontent.com/RamirezArizpe/App-fintech/main/encabezado%20app.jpg", width=4000)
 
-    with st.form(key="manual_form"):
-        tipo = st.selectbox("Tipo de movimiento", ["Ingreso", "Gasto"])
-        descripcion = st.text_input("Descripción del movimiento")
-        monto = st.number_input("Monto", min_value=0.01, step=0.01)
-        forma_pago = st.text_input("Forma de pago")
-        valoracion_gasto = st.slider("Valoración del gasto (1 = Totalmente innecesario, 6 = Totalmente necesario)", min_value=1, max_value=6, value=4)
-        fecha = st.date_input("Fecha de transacción", value=datetime.today())
-        agregar = st.form_submit_button("Agregar movimiento")
+# Lista inicial de formas de pago
+formas_pago = ['transferencia', 'depósito', 'efectivo']
 
-    if agregar:
-        nuevo_dato = {
-            "Tipo": tipo,
-            "Descripción": descripcion,
-            "Monto": monto,
-            "Forma de pago": forma_pago,
-            "Valoración gasto": valoracion_gasto,
-            "Fecha de transacción": fecha
-        }
-        return pd.DataFrame([nuevo_dato])
-    return pd.DataFrame()
+# Función para agregar forma de pago si no está en la lista
+def agregar_forma_pago(pago):
+    if pago not in formas_pago:
+        formas_pago.append(pago)
+        st.write(f"Forma de pago '{pago}' añadida a la lista.")
+    else:
+        st.write(f"La forma de pago '{pago}' ya está en la lista.")
 
 # Función para cargar datos desde un archivo CSV
 def cargar_csv():
@@ -36,145 +24,147 @@ def cargar_csv():
             df = pd.read_csv(archivo)
             st.write("Datos cargados exitosamente:")
             st.write(df)
-            return df
         except Exception as e:
             st.error(f"Error al cargar el archivo: {e}")
-            return None
-    return None
 
-# Análisis de ingresos y gastos
-def analizar_ingresos_gastos(df):
-    st.header("Análisis de Ingresos y Gastos")
+# Función para mostrar un ejemplo de archivo CSV
+def mostrar_ejemplo_csv():
+    # Ejemplo con columna "Tipo" para indicar si es un Ingreso o Gasto
+    ejemplo = pd.DataFrame({
+        "Descripción": ["Ingreso 1", "Gasto 1", "Ingreso 2", "Gasto 2"],
+        "Monto": [1000, 200, 1500, 100],
+        "Forma de pago": ["transferencia", "efectivo", "depósito", "efectivo"],
+        "Fecha de transacción": ["2024-12-16", "2024-12-16", "2024-12-17", "2024-12-17"],
+        "Valoración gasto": [None, 3, None, 4],  # Valoración sólo para gastos
+        "Tipo": ["Ingreso", "Gasto", "Ingreso", "Gasto"]  # Columna Tipo para diferenciar
+    })
+    
+    st.write("Ejemplo de formato CSV para carga correcta: (no escribas acentos ni caractéres especiales)")
+    st.write(ejemplo)
+    # Opción para descargar el ejemplo como CSV
+    st.download_button(
+        label="Descargar archivo ejemplo",
+        data=ejemplo.to_csv(index=False),
+        file_name="ejemplo_finanzas_personales.csv",
+        mime="text/csv"
+    )
 
-    ingresos = df[df["Tipo"] == "Ingreso"]["Monto"].sum()
-    gastos = df[df["Tipo"] == "Gasto"]["Monto"].sum()
-
-    st.write(f"**Total de Ingresos:** ${ingresos:.2f}")
-    st.write(f"**Total de Gastos:** ${gastos:.2f}")
-
-    if ingresos > 0:
-        proporcion_gastos = (gastos / ingresos) * 100
-        st.write(f"**Proporción de Gastos sobre Ingresos:** {proporcion_gastos:.2f}%")
-        if proporcion_gastos > 70:
-            st.warning("Tus gastos representan una alta proporción de tus ingresos. Considera ajustar tus gastos para mejorar tu ahorro.")
-        elif proporcion_gastos > 50:
-            st.info("Tus gastos están en un rango moderado respecto a tus ingresos. Monitorea para evitar desequilibrios.")
-        else:
-            st.success("Tus gastos están bien controlados en relación con tus ingresos. ¡Buen trabajo!")
-    else:
-        st.error("No hay ingresos registrados, no se puede calcular la proporción de gastos.")
-
-    # Gráfico de barras comparativo
-    fig, ax = plt.subplots()
-    ax.bar(["Ingresos", "Gastos"], [ingresos, gastos], color=["green", "red"])
-    ax.set_ylabel("Monto ($)")
-    ax.set_title("Ingresos vs. Gastos")
-    st.pyplot(fig)
-
-    # Distribución de gastos por categoría
-    if "Forma de pago" in df.columns:
-        gastos_categoria = df[df["Tipo"] == "Gasto"].groupby("Forma de pago")["Monto"].sum()
-        fig, ax = plt.subplots()
-        gastos_categoria.plot(kind="pie", autopct="%1.1f%%", ax=ax, startangle=90, colors=plt.cm.Paired.colors)
-        ax.set_ylabel("")
-        ax.set_title("Distribución de Gastos por Forma de Pago")
-        st.pyplot(fig)
-
-# Clasificación de gastos por necesidad
-def clasificar_gastos(df):
-    st.header("Clasificación de Gastos por Necesidad")
-
-    if "Valoración gasto" in df.columns:
-        gastos = df[df["Tipo"] == "Gasto"]
-
-        # Traducción de etiquetas de valoración
-        etiquetas = {
-            1: "Totalmente innecesario",
-            2: "Muy innecesario",
-            3: "Innecesario",
-            4: "Necesario",
-            5: "Muy necesario",
-            6: "Totalmente necesario"
+# Inyectar CSS personalizado para cambiar el color y el grosor del slider y el estilo de los botones
+st.markdown("""
+    <style>
+        /* Cambiar color y grosor del slider */
+        .stSlider .st-bw {
+            width: 100%;
+            height: 12px; /* Hacer el slider más grueso */
+            background-color: #001f3d; /* Azul marino */
         }
-        gastos["Etiqueta Valoración"] = gastos["Valoración gasto"].map(etiquetas)
+        .stSlider .st-bw .st-cb {
+            background-color: #FFFFFF; /* Color blanco para el botón del slider */
+        }
 
-        # Identificar gastos menos necesarios
-        innecesarios = gastos[gastos["Valoración gasto"] <= 3]
-        st.write("### Gastos menos necesarios:")
+        /* Cambiar estilo de los botones a pills moradas */
+        .stButton > button {
+            background-color: #6a1b9a;  /* Morado */
+            color: white;
+            border-radius: 50px; /* Hacerlo "pill" */
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+        }
+        .stButton > button:hover {
+            background-color: #9c4dcc;  /* Morado más claro al pasar el ratón */
+        }
 
-        # Mostrar columna de valoración y etiquetas
-        if "Tipo" in innecesarios.columns and "Descripción" in innecesarios.columns:
-            agrupados = innecesarios.groupby(["Tipo", "Descripción"]).agg({"Monto": "sum", "Valoración gasto": "mean"}).sort_values(by="Monto", ascending=False)
-            agrupados["Etiqueta Valoración"] = agrupados["Valoración gasto"].map(etiquetas)
-            st.write(agrupados)
-        else:
-            st.write(innecesarios.sort_values(by="Valoración gasto", ascending=True))
+        /* Cambiar el estilo del radio button */
+        .stRadio > div {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+        }
 
-# Cálculo de ahorro mensual
-def calcular_ahorro(df):
-    st.header("Cálculo de Ahorros")
+        /* Cambiar el estilo de las opciones del radio button a pills moradas */
+        .stRadio label {
+            background-color: #6a1b9a;
+            color: white;
+            border-radius: 50px;
+            font-size: 16px;
+            padding: 8px 20px;
+        }
 
-    ingresos_totales = df[df["Tipo"] == "Ingreso"].groupby("Fecha de transacción")["Monto"].sum()
-    gastos_totales = df[df["Tipo"] == "Gasto"].groupby("Fecha de transacción")["Monto"].sum()
+        .stRadio input:checked + label {
+            background-color: #9c4dcc; /* Morado más claro cuando se selecciona */
+        }
 
-    ahorro_mensual = ingresos_totales - gastos_totales
+        /* Estilo de los radio buttons */
+        .stRadio .st-bw {
+            color: white; /* Color de texto blanco en los botones */
+        }
 
-    st.write("### Ahorro por mes:")
-    st.write(ahorro_mensual)
+        /* Sin fondo para la pregunta */
+        .stTitle, .stSubheader, .stMarkdown {
+            background: none !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
-    # Gráfico de ahorro
-    fig, ax = plt.subplots()
-    ahorro_mensual.plot(kind="bar", ax=ax, color="blue")
-    ax.set_ylabel("Ahorro ($)")
-    ax.set_title("Ahorro Mensual")
-    st.pyplot(fig)
+# Función para registrar un ingreso o un gasto
+def registrar_transaccion(tipo):
+    st.title(f"Registrar {tipo}")
 
-# Predicción básica de ahorros
-def predecir_ahorros(df):
-    st.header("Predicción de Ahorros")
+    # Campos comunes para ingreso y gasto
+    descripcion = st.text_input(f"Descripción del {tipo.lower()}")
+    monto = st.number_input("Monto en pesos mexicanos", min_value=0.0)
+    pago = st.selectbox("Forma de pago", formas_pago)
+    fecha = st.date_input("Fecha de transacción", datetime.today())
 
-    if "Fecha de transacción" in df.columns:
-        df["Fecha de transacción"] = pd.to_datetime(df["Fecha de transacción"])
-        ingresos_totales = df[df["Tipo"] == "Ingreso"].groupby("Fecha de transacción")["Monto"].sum()
-        gastos_totales = df[df["Tipo"] == "Gasto"].groupby("Fecha de transacción")["Monto"].sum()
+    # Si es un gasto, añadir valoración de necesidad
+    if tipo == "Gasto":
+        valoracion = st.slider(
+            "¿Qué tan necesario fue este gasto?", 
+            min_value=1, 
+            max_value=6, 
+            step=1
+        )
+        st.markdown("""
+            <style>
+                /* Estilo para el texto explicativo */
+                .stSlider + .stText {
+                    font-size: 14px;
+                    color: #333;
+                    font-style: italic;
+                }
+            </style>
+            <p style="font-size: 14px; color: #333; font-style: italic;">1 = Totalmente innecesario, 6 = Totalmente necesario</p>
+        """, unsafe_allow_html=True)
 
-        ahorro_mensual = (ingresos_totales - gastos_totales).resample("M").sum()
+    if st.button(f"Registrar {tipo}"):
+        # Convertir la fecha en formato adecuado
+        fecha_str = fecha.strftime('%Y-%m-%d')
 
-        # Promedio móvil simple para predicción
-        ahorro_mensual["Predicción"] = ahorro_mensual.rolling(window=3).mean()
+        if tipo == "Ingreso":
+            st.write(f"Ingreso registrado: Descripción: {descripcion}, Monto: {monto}, Forma de pago: {pago}, Fecha: {fecha_str}")
+        elif tipo == "Gasto":
+            st.write(f"Gasto registrado: Descripción: {descripcion}, Monto: {monto}, Forma de pago: {pago}, Fecha: {fecha_str}, Valoración: {valoracion}")
 
-        st.write("### Predicción de ahorro basado en promedio móvil:")
-        st.line_chart(ahorro_mensual)
-
-# Aplicación principal
+# Función principal que permite elegir entre ingresar manualmente o cargar CSV
 def app():
-    st.title("Gestión de Finanzas Personales")
+    # Añadir la pregunta antes de las opciones
+    st.title("¿Qué deseas registrar?")
+    
+    # Botón para elegir entre "Ingreso Manual" o "Carga desde CSV"
+    opcion = st.radio("Selecciona cómo deseas registrar tus datos", ["Ingreso Manual", "Carga desde CSV"])
 
-    # Seleccionar entre carga manual o carga desde CSV
-    opcion = st.radio("Seleccione el método de carga de datos:", ("Carga Manual", "Cargar desde CSV"))
+    if opcion == "Ingreso Manual":
+        # Subopciones para elegir entre Ingreso o Gasto
+        transaccion = st.radio("¿Qué deseas registrar?", ["Ingreso", "Gasto"])
 
-    if opcion == "Carga Manual":
-        df_manual = cargar_manual()
-        if not df_manual.empty:
-            if "dataframe" not in st.session_state:
-                st.session_state["dataframe"] = df_manual
-            else:
-                st.session_state["dataframe"] = pd.concat([st.session_state["dataframe"], df_manual], ignore_index=True)
+        # Mostrar el formulario según la selección
+        registrar_transaccion(transaccion)
+    
+    elif opcion == "Carga desde CSV":
+        mostrar_ejemplo_csv()
+        cargar_csv()
 
-    elif opcion == "Cargar desde CSV":
-        df_csv = cargar_csv()
-        if df_csv is not None:
-            st.session_state["dataframe"] = df_csv
-
-    if "dataframe" in st.session_state:
-        df = st.session_state["dataframe"]
-        st.write("### Datos actuales:")
-        st.write(df)
-
-        analizar_ingresos_gastos(df)
-        clasificar_gastos(df)
-        calcular_ahorro(df)
-        predecir_ahorros(df)
-
+# Ejecutar la aplicación
 if __name__ == "__main__":
     app()
