@@ -1,162 +1,78 @@
 import streamlit as st
 import pandas as pd
-import os
+import matplotlib.pyplot as plt
 
 # Agregar el logo al encabezado
-st.image("https://raw.githubusercontent.com/RamirezArizpe/App-fintech/main/encabezado%20app.jpg", width=400)
+st.image("https://raw.githubusercontent.com/RamirezArizpe/App-fintech/main/encabezado%20app.jpg", width=4000)
 
-# Ruta para guardar los datos
-DATA_PATH = 'finanzas_personales.csv'
+# Crear DataFrames vacíos para ingresos y gastos
+df_ingresos = pd.DataFrame(columns=['Descripción', 'Monto', 'Fecha de registro', 'Forma de pago'])
+df_gastos = pd.DataFrame(columns=['Descripción', 'Monto', 'Fecha de registro', 'Forma de pago', 'Valoración'])
 
-# Función para cargar los datos desde el archivo CSV si existe
-def cargar_datos():
-    if os.path.exists(DATA_PATH):
-        df = pd.read_csv(DATA_PATH)
-        df['Fecha de registro'] = pd.to_datetime(df['Fecha de registro'])
-        return df
-    else:
-        return pd.DataFrame(columns=['Tipo', 'Descripción', 'Monto', 'Fecha de registro', 'Forma de pago', 'Valoración'])
+# Función para cargar CSV
+def cargar_csv():
+    archivo_subido = st.file_uploader("Sube tu archivo CSV", type=["csv"])
+    if archivo_subido is not None:
+        df = pd.read_csv(archivo_subido)
+        df['Fecha de registro'] = pd.to_datetime(df['Fecha de registro'], format='%d/%m/%Y')
+        
+        # Separar los ingresos y los gastos según la columna 'Tipo'
+        df_ingresos = df[df['Tipo'] == 'Ingreso']
+        df_gastos = df[df['Tipo'] == 'Gasto']
+        
+        # Mostrar los DataFrames separados
+        st.write("Ingresos:", df_ingresos)
+        st.write("Gastos:", df_gastos)
 
-# Función para guardar los datos en el archivo CSV
-def guardar_datos(df):
-    df.to_csv(DATA_PATH, index=False)
+        return df_ingresos, df_gastos
+    return None, None
 
-# Cargar los datos al inicio
-df_finanzas = cargar_datos()
+# Llamar la función para cargar y procesar el CSV
+df_ingresos, df_gastos = cargar_csv()
 
-# Función para registrar un movimiento (ingreso o gasto)
-def registrar_movimiento(tipo, descripcion, monto, forma_pago, valoracion, fecha):
-    global df_finanzas
-    nuevo_movimiento = {'Tipo': tipo, 'Descripción': descripcion, 'Monto': monto, 'Fecha de registro': fecha, 'Forma de pago': forma_pago, 'Valoración': valoracion}
-    df_finanzas = df_finanzas.append(nuevo_movimiento, ignore_index=True)
-    guardar_datos(df_finanzas)
-    st.success(f"{tipo.capitalize()} registrado exitosamente.")
+# Función para registrar un gasto
+def registrar_gasto_con_slider():
+    descripcion = st.text_input("Descripción del gasto:")
+    monto = st.number_input("Monto del gasto:", min_value=0.0)
+    forma_pago = st.selectbox("Forma de pago:", ["Efectivo", "Tarjeta", "Transferencia"])
+    fecha_mov = st.date_input("Fecha de registro")
 
-# Función para mostrar el balance
-def mostrar_balance():
-    df_ingresos = df_finanzas[df_finanzas['Tipo'] == 'ingreso']
-    df_gastos = df_finanzas[df_finanzas['Tipo'] == 'gasto']
+    # Mostrar la barra deslizadora solo si es un gasto
+    if monto > 0:
+        valoracion = st.slider("¿Qué tan necesario fue este gasto?", 1, 6, 3)
+        if st.button("Registrar Gasto"):
+            # Aquí puedes guardar el gasto en el DataFrame correspondiente
+            nuevo_gasto = {
+                'Descripción': descripcion,
+                'Monto': monto,
+                'Fecha de registro': str(fecha_mov),
+                'Forma de pago': forma_pago,
+                'Valoración': valoracion
+            }
+            df_gastos.loc[len(df_gastos)] = nuevo_gasto
+            st.success(f"Gasto registrado: {descripcion}, {monto}, {forma_pago}, {valoracion}, {fecha_mov}")
 
-    df_ingresos['Mes'] = df_ingresos['Fecha de registro'].dt.strftime('%Y-%m')
-    df_gastos['Mes'] = df_gastos['Fecha de registro'].dt.strftime('%Y-%m')
-
-    resumen_ingresos = df_ingresos.groupby('Mes').agg({'Monto': 'sum'}).rename(columns={'Monto': 'Ingresos'})
-    resumen_gastos = df_gastos.groupby('Mes').agg({'Monto': 'sum'}).rename(columns={'Monto': 'Gastos'})
-
-    resumen_mensual = pd.merge(resumen_ingresos, resumen_gastos, on='Mes', how='outer').fillna(0)
-    resumen_mensual['Balance'] = resumen_mensual['Ingresos'] - resumen_mensual['Gastos']
-
-    st.write("Resumen mensual de ingresos, gastos y balance:")
-    st.dataframe(resumen_mensual)
-
-# Interfaz de usuario
-st.title("App de Finanzas Personales")
-
-# Selección del tipo de entrada: manual o desde CSV
-opcion_entrada = st.radio("¿Cómo desea registrar los datos?", ["Ingreso manual", "Cargar desde archivo CSV"], horizontal=True)
-
-if opcion_entrada == "Ingreso manual":
-    # Selección de tipo de movimiento
-    tipo = st.selectbox("¿Qué desea registrar?", ["Ingreso", "Gasto"])
-
-    # Entradas según el tipo de movimiento
-    descripcion = st.text_input("Descripción")
-    monto = st.number_input("Monto", min_value=0.01, format="%.2f")
-    forma_pago = st.selectbox("Forma de pago", ["Efectivo", "Tarjeta de crédito", "Tarjeta de débito", "Transferencia", "Otros"])
-
-    if tipo == "Gasto":
-        valoracion = st.slider("Valoración del gasto (1-6)", 1, 6, 3)
-    else:
-        valoracion = None  # Los ingresos no tienen valoración
-
-    fecha = st.date_input("Fecha de registro")
-
-    # Botón para registrar
-    if st.button(f"Registrar {tipo.lower()}"):
-        if descripcion and monto > 0 and forma_pago:
-            registrar_movimiento(tipo.lower(), descripcion, monto, forma_pago, valoracion, fecha)
-        else:
-            st.error("Por favor, complete todos los campos.")
-elif opcion_entrada == "Cargar desde archivo CSV":
-    # Cargar archivo CSV
-    archivo = st.file_uploader("Suba un archivo CSV", type="csv")
-
-    if archivo:
-        try:
-            df_cargado = pd.read_csv(archivo)
-            df_cargado['Fecha de registro'] = pd.to_datetime(df_cargado['Fecha de registro'])
-            st.write("Datos cargados desde el archivo:")
-            st.dataframe(df_cargado)
-            # Registrar datos cargados en el DataFrame principal
-            for _, row in df_cargado.iterrows():
-                registrar_movimiento(row['Tipo'], row['Descripción'], row['Monto'], row['Forma de pago'], row.get('Valoración', None), row['Fecha de registro'])
-        except Exception as e:
-            st.error(f"Hubo un error al cargar el archivo: {e}")
-
-# Mostrar balance mensual
-if st.checkbox("Ver balance mensual"):
-    mostrar_balance()
-
-# Mostrar los registros actuales
-if st.checkbox("Ver registros actuales"):
-    st.write(df_finanzas)
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-# Convertir las fechas a datetime
-df_finanzas['Fecha de registro'] = pd.to_datetime(df_finanzas['Fecha de registro'])
-
-# Filtrar los ingresos y gastos
-df_ingresos = df_finanzas[df_finanzas['Tipo'] == 'ingreso']
-df_gastos = df_finanzas[df_finanzas['Tipo'] == 'gasto']
-
-# Graficar Ingresos vs Gastos
-st.subheader("Gráfico de Ingresos vs Gastos")
-col1, col2 = st.columns(2)
-
-with col1:
-    # Graficar los ingresos
+# Si los DataFrames no están vacíos, puedes mostrar las gráficas
+if not df_ingresos.empty and not df_gastos.empty:
+    # Graficar DataFrame de ingresos vs DataFrame de gastos
     plt.figure(figsize=(10, 6))
-    plt.plot(df_ingresos['Fecha de registro'], df_ingresos['Monto'], marker='o', label='Ingresos', color='green')
+    plt.plot(df_ingresos['Fecha de registro'], df_ingresos['Monto'], marker='o', label='Ingresos')
+    plt.plot(df_gastos['Fecha de registro'], df_gastos['Monto'], marker='o', label='Gastos')
     plt.xlabel('Fecha')
     plt.ylabel('Monto')
-    plt.title('Ingresos por Fecha')
+    plt.title('Ingresos vs Gastos')
     plt.legend()
     plt.grid(True)
     st.pyplot(plt)
 
-with col2:
-    # Graficar los gastos
+    # Graficar los gastos por categoría (Descripción)
     plt.figure(figsize=(10, 6))
-    plt.plot(df_gastos['Fecha de registro'], df_gastos['Monto'], marker='o', label='Gastos', color='red')
-    plt.xlabel('Fecha')
+    df_gastos.groupby('Descripción')['Monto'].sum().plot(kind='bar')
+    plt.title('Gastos por Categoría')
+    plt.xlabel('Categoría')
     plt.ylabel('Monto')
-    plt.title('Gastos por Fecha')
-    plt.legend()
-    plt.grid(True)
+    plt.xticks(rotation=45)
     st.pyplot(plt)
 
-# Graficar los ingresos por categoría (Descripción)
-st.subheader("Gráfico de Ingresos por Categoría")
-plt.figure(figsize=(10, 6))
-ingresos_categoria = df_ingresos.groupby('Descripción')['Monto'].sum().sort_values(ascending=False)
-sns.barplot(x=ingresos_categoria.index, y=ingresos_categoria.values, palette='Greens')
-plt.title('Ingresos por Categoría')
-plt.xlabel('Categoría')
-plt.ylabel('Monto')
-plt.xticks(rotation=45, ha='right')
-plt.tight_layout()  # Mejor ajuste de los elementos
-st.pyplot(plt)
-
-# Graficar los gastos por categoría (Descripción)
-st.subheader("Gráfico de Gastos por Categoría")
-plt.figure(figsize=(10, 6))
-gastos_categoria = df_gastos.groupby('Descripción')['Monto'].sum().sort_values(ascending=False)
-sns.barplot(x=gastos_categoria.index, y=gastos_categoria.values, palette='Reds')
-plt.title('Gastos por Categoría')
-plt.xlabel('Categoría')
-plt.ylabel('Monto')
-plt.xticks(rotation=45, ha='right')
-plt.tight_layout()  # Mejor ajuste de los elementos
-st.pyplot(plt)
+# Llamada a la función de registro de gasto con slider
+registrar_gasto_con_slider()
