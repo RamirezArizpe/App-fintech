@@ -169,6 +169,7 @@ def app():
 
     # Llamar a la función para mostrar análisis
     mostrar_analisis(df)
+    analizar_gastos(df)
     
     st.write("Ejemplo de formato CSV para carga correcta: (no escribas acentos ni caractéres especiales)")
     st.write(ejemplo)
