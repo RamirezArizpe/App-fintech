@@ -1,21 +1,8 @@
 import streamlit as st
 import pandas as pd
 
-# Configurar tema oscuro
-st.set_page_config(page_title="Mi Aplicación", page_icon=":guardsman:", layout="centered", initial_sidebar_state="expanded")
-
-# Cambiar a tema oscuro
-st.markdown(
-    """
-    <style>
-    .main {
-        background-color: #333333;
-        color: black;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# Agregar el logo al encabezado
+st.image('ruta/a/tu/logo.png', width=200) 
 
 # Configuración inicial de la aplicación
 st.title("Formulario de Datos y Análisis")
