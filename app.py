@@ -100,3 +100,13 @@ if st.checkbox("Ver balance mensual"):
 # Mostrar los registros actuales
 if st.checkbox("Ver registros actuales"):
     st.write(df_finanzas)
+
+import plotly.express as px
+
+# Crear gráfico de barras
+data = {'Categoría': ['A', 'B', 'C', 'D'], 'Valor': [10, 20, 30, 40]}
+df = pd.DataFrame(data)
+
+fig = px.bar(df, x='Categoría', y='Valor', title="Gráfico de Barras Interactivo")
+st.plotly_chart(fig)
+
